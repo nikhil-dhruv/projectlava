@@ -1,886 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Gallery Challenge — PARSEC Whitefield Digital Gallery</title>
-<style>
-  :root{
-    --ink:#0f1720;
-    --paper:#eef1e8;
-    --panel:#ffffff;
-    --line:#d8dccf;
-    --line-strong:#b9bfae;
-    --moss:#3b6d11;
-    --moss-deep:#173404;
-    --moss-fill:#eaf3de;
-    --clay:#993c1d;
-    --clay-fill:#faece7;
-    --plum:#534ab7;
-    --plum-fill:#eeedfe;
-    --gold:#854f0b;
-    --gold-fill:#faeeda;
-    --muted:#5b6156;
-  }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{
-    margin:0; padding:0; width:100%; min-height:100%;
-    background:var(--paper); color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
-    overflow-x:hidden; user-select:none;
-    -webkit-text-size-adjust:100%;
-  }
-  #app{ width:100%; min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; position:relative; z-index:1; }
+  <meta charset="UTF-8">
+  <title>Newton's Light Bulbs | @coding.stella </title>
+  <link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+  <link rel="stylesheet" href="./style.css">
 
-  #floaty-bg{
-    position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;
-  }
-  .floaty{
-    position:absolute; opacity:.16; color:var(--muted);
-    animation-name:floatY; animation-timing-function:ease-in-out; animation-iteration-count:infinite;
-  }
-  .floaty svg{ display:block; }
-  .f-moss{ color:var(--moss); }
-  .f-clay{ color:var(--clay); }
-  .f-plum{ color:var(--plum); }
-  .f-gold{ color:var(--gold); }
-  @keyframes floatY{
-    0%{ transform:translateY(0) rotate(0deg); }
-    50%{ transform:translateY(-22px) rotate(8deg); }
-    100%{ transform:translateY(0) rotate(0deg); }
-  }
-
-  #dash{ display:flex; align-items:stretch; background:var(--panel); border-bottom:2px solid var(--line-strong); flex-shrink:0; }
-  .dash-cell{ flex:1; padding:14px 20px; border-right:1px solid var(--line); display:flex; flex-direction:column; justify-content:center; gap:4px; min-width:0; }
-  .dash-cell:last-child{ border-right:none; }
-  .dash-label{ font-size:13px; color:var(--muted); }
-  .dash-value{ font-size:26px; font-weight:600; line-height:1.1; }
-  #timer-wrap{ flex:0 0 130px; align-items:center; }
-  #timer-ring{ position:relative; width:56px; height:56px; }
-  #timer-ring svg{ transform:rotate(-90deg); }
-  #timer-text{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:600; }
-
-  #stage{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:26px 40px; position:relative; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  .screen{ width:100%; max-width:920px; display:flex; flex-direction:column; align-items:center; gap:20px; }
-
-  #start-screen h1{ font-size:36px; font-weight:600; margin:0; text-align:center; line-height:1.15; }
-  #start-screen p{ font-size:17px; color:var(--muted); text-align:center; max-width:600px; margin:0; }
-
-  #gallery-grid{ width:100%; display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:6px; }
-  .gtile{
-    background:var(--panel); border:2px solid var(--line-strong); border-radius:16px;
-    padding:20px 16px; text-align:left; cursor:pointer; display:flex; flex-direction:column; gap:8px;
-    min-height:120px; position:relative; touch-action:manipulation;
-  }
-  .gtile:active{ transform:scale(.98); }
-  .gtile .g-icon{ font-size:26px; }
-  .gtile .g-name{ font-size:17px; font-weight:600; line-height:1.25; }
-  .gtile .g-status{ font-size:12.5px; color:var(--muted); }
-  .gtile.done{ background:var(--moss-fill); border-color:var(--moss); }
-  .gtile.done .g-status{ color:var(--moss-deep); font-weight:600; }
-  .gtile .g-check{
-    position:absolute; top:12px; right:12px; width:22px; height:22px; border-radius:50%;
-    background:var(--moss); color:#fff; display:none; align-items:center; justify-content:center; font-size:13px; font-weight:700;
-  }
-  .gtile.done .g-check{ display:flex; }
-
-  .big-btn{
-    font-size:20px; font-weight:600; padding:16px 44px; border-radius:16px;
-    border:none; background:var(--moss); color:#fff; cursor:pointer;
-    box-shadow:0 3px 0 var(--moss-deep); transition:transform .06s ease; touch-action:manipulation;
-  }
-  .big-btn:active{ transform:translateY(3px); box-shadow:none; }
-  .ghost-btn{
-    font-size:15px; font-weight:600; padding:10px 22px; border-radius:12px;
-    border:1.5px solid var(--line-strong); background:var(--panel); color:var(--ink); cursor:pointer; touch-action:manipulation;
-  }
-
-  #q-back{ align-self:flex-start; }
-  #q-progress{ display:flex; gap:8px; }
-  .qdot{ width:10px; height:10px; border-radius:50%; background:var(--line); }
-  .qdot.done{ background:var(--moss); }
-  .qdot.current{ background:var(--gold); }
-  #q-category{ font-size:14px; font-weight:600; color:var(--clay); background:var(--clay-fill); padding:5px 14px; border-radius:20px; }
-  #q-prompt{ font-size:27px; font-weight:600; text-align:center; line-height:1.32; max-width:760px; }
-  #q-options{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4px; }
-  .opt{
-    background:var(--panel); border:2px solid var(--line-strong); border-radius:14px;
-    padding:20px 18px; font-size:18px; font-weight:500; text-align:left; cursor:pointer;
-    display:flex; align-items:center; gap:14px; line-height:1.35; touch-action:manipulation;
-    transition:transform .12s ease;
-  }
-  .opt:active{ transform:scale(.98); }
-  .opt-letter{ flex:0 0 32px; height:32px; border-radius:50%; background:var(--paper); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; border:1.5px solid var(--line-strong); }
-  .opt.correct{ background:var(--moss-fill); border-color:var(--moss); }
-  .opt.correct .opt-letter{ background:var(--moss); color:#fff; border-color:var(--moss); }
-  .opt.wrong{ background:var(--clay-fill); border-color:var(--clay); }
-  .opt.wrong .opt-letter{ background:var(--clay); color:#fff; border-color:var(--clay); }
-  .opt.dim{ opacity:.45; }
-
-  .hint-btn{
-    font-size:14.5px; font-weight:600; color:var(--gold); background:var(--gold-fill);
-    border:1.5px dashed var(--gold); border-radius:20px; padding:8px 18px; cursor:pointer;
-    touch-action:manipulation; align-self:center;
-  }
-  .hint-btn:active{ transform:scale(.96); }
-  #hint-box{
-    max-height:0; overflow:hidden; opacity:0; width:100%; max-width:640px;
-    transition:max-height .35s ease, opacity .3s ease, padding .35s ease, margin .35s ease;
-    background:var(--gold-fill); border:1.5px solid var(--gold); border-radius:12px;
-    padding:0 16px; text-align:center; font-size:15px; color:#5c3a08;
-  }
-  #hint-box.open{ max-height:160px; opacity:1; padding:12px 16px; margin-top:-4px; }
-
-  @keyframes fadeSlideIn{
-    from{ opacity:0; transform:translateY(14px); }
-    to{ opacity:1; transform:translateY(0); }
-  }
-  .screen.enter{ animation:fadeSlideIn .35s ease both; }
-
-  @keyframes tileIn{
-    from{ opacity:0; transform:translateY(16px) scale(.96); }
-    to{ opacity:1; transform:translateY(0) scale(1); }
-  }
-  .gtile{ animation:tileIn .4s ease both; }
-
-  @keyframes shakeX{
-    10%,90%{ transform:translateX(-2px); }
-    20%,80%{ transform:translateX(4px); }
-    30%,50%,70%{ transform:translateX(-8px); }
-    40%,60%{ transform:translateX(8px); }
-  }
-  .opt.wrong{ animation:shakeX .5s ease; }
-
-  @keyframes correctPop{
-    0%{ transform:scale(1); }
-    40%{ transform:scale(1.035); }
-    100%{ transform:scale(1); }
-  }
-  .opt.correct{ animation:correctPop .45s ease; }
-
-  @keyframes ringPulse{
-    0%,100%{ opacity:1; } 50%{ opacity:.4; }
-  }
-  #timer-ring.low #timer-arc{ stroke:var(--clay); }
-  #timer-ring.low #timer-text{ color:var(--clay); }
-  #timer-ring.low{ animation:ringPulse 1s ease-in-out infinite; }
-
-  @keyframes scoreBump{
-    0%{ transform:scale(1); } 45%{ transform:scale(1.28); color:var(--moss-deep); } 100%{ transform:scale(1); }
-  }
-  .dash-value.bump{ animation:scoreBump .5s ease; }
-
-  .confetti-piece{
-    position:fixed; top:0; left:0; width:8px; height:8px; pointer-events:none; z-index:50;
-    border-radius:2px; will-change:transform, opacity;
-  }
-
-
-  #feedback{ min-height:50px; display:flex; align-items:center; justify-content:center; gap:10px; font-size:17px; font-weight:600; text-align:center; max-width:700px; }
-  .fb-good{ color:var(--moss-deep); }
-  .fb-bad{ color:var(--clay); }
-  .fb-note{ display:block; font-weight:400; font-size:14.5px; color:var(--muted); margin-top:4px; }
-
-  #gallery-end h2{ font-size:26px; font-weight:600; margin:0; text-align:center; }
-  #gallery-end .n{ font-size:30px; font-weight:600; }
-
-  #end-screen h1{ font-size:34px; font-weight:600; margin:0; text-align:center; }
-  #end-summary{ display:flex; gap:16px; width:100%; max-width:640px; margin-top:6px; }
-  .sum-card{ flex:1; background:var(--panel); border:1px solid var(--line-strong); border-radius:14px; padding:16px; text-align:center; }
-  .sum-card .n{ font-size:28px; font-weight:600; }
-  .sum-card .l{ font-size:12.5px; color:var(--muted); margin-top:2px; }
-  #end-note{ font-size:15.5px; color:var(--muted); text-align:center; max-width:560px; }
-
-  #reset-corner{ position:absolute; top:10px; right:14px; font-size:13px; color:var(--muted); background:none; border:none; cursor:pointer; padding:6px 10px; }
-
-  @media (max-width:760px){
-    #gallery-grid{ grid-template-columns:1fr 1fr; }
-    #q-options{ grid-template-columns:1fr; }
-    #start-screen h1{ font-size:28px; }
-    #start-screen p{ font-size:15.5px; }
-    #q-prompt{ font-size:21px; }
-    #stage{ padding:16px 16px 24px; }
-    .opt{ padding:16px 14px; font-size:16px; }
-    #reset-corner{ top:6px; right:8px; font-size:12px; padding:5px 8px; }
-  }
-  @media (max-width:600px){
-    #dash{ flex-wrap:wrap; }
-    .dash-cell{
-      flex:1 1 50%; min-width:0; padding:10px 12px; border-right:1px solid var(--line);
-    }
-    .dash-cell:nth-child(2){ border-right:none; }
-    .dash-value{ font-size:20px; }
-    .dash-label{ font-size:11.5px; }
-    #timer-wrap{ flex:1 1 50%; border-right:1px solid var(--line) !important; align-items:flex-start; }
-    #timer-ring{ width:44px; height:44px; }
-    #timer-ring svg{ width:44px; height:44px; }
-    #timer-text{ font-size:16px; }
-  }
-  @media (max-width:480px){
-    #gallery-grid{ grid-template-columns:1fr; gap:10px; }
-    .gtile{ min-height:auto; padding:16px 14px; flex-direction:row; align-items:center; }
-    .gtile .g-icon{ font-size:22px; }
-    .gtile .g-name{ font-size:15.5px; }
-    .gtile .g-status{ font-size:12px; }
-    .gtile .g-check{ top:auto; right:14px; }
-    #start-screen h1{ font-size:24px; }
-    #q-prompt{ font-size:19px; }
-    .big-btn{ font-size:17px; padding:14px 32px; width:100%; }
-    #end-summary{ flex-direction:column; }
-    .sum-card{ padding:12px; }
-  }
-  @media (max-height:560px){
-    #stage{ padding:12px 16px; justify-content:flex-start; }
-    .screen{ gap:12px; }
-  }
-</style>
 </head>
+
 <body>
-<div id="floaty-bg"></div>
-<div id="app">
-
-  <div id="dash">
-    <div class="dash-cell">
-      <div class="dash-label">Player score</div>
-      <div class="dash-value" id="dash-score">0</div>
-    </div>
-    <div class="dash-cell">
-      <div class="dash-label">Galleries completed</div>
-      <div class="dash-value" id="dash-visited">0 / 6</div>
-    </div>
-    <div class="dash-cell" id="timer-wrap">
-      <div class="dash-label">Time left</div>
-      <div id="timer-ring">
-        <svg width="56" height="56">
-          <circle cx="28" cy="28" r="24" stroke="#d8dccf" stroke-width="5" fill="none"></circle>
-          <circle id="timer-arc" cx="28" cy="28" r="24" stroke="#854f0b" stroke-width="5" fill="none"
-            stroke-dasharray="150.8" stroke-dashoffset="0" stroke-linecap="round"></circle>
-        </svg>
-        <div id="timer-text">60</div>
-      </div>
-    </div>
+  <input type="checkbox" />
+  <input type="checkbox" />
+  <input type="checkbox" />
+  <input type="checkbox" />
+  <div class="wrapper">
+    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 98.138617 90.336713">
+      <g class="light-bulb light-bulb--3">
+        <path class="light-bulb__chord" d="M45.1005633.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
+        <g class="light-bulb__bulb" transform="translate(2.5955317 -211.35093658)">
+          <circle class="light-bulb__glass" r="3.8407259" cy="286.7189" cx="42.372742" stroke-width=".25604835"
+            stroke-linecap="round" stroke-linejoin="round"></circle>
+          <rect class="light-bulb__fitting" ry=".37417734" y="279.35907" x="39.8592" height="3.96875" width="5.2916665">
+          </rect>
+          <g class="light-bulb__filament">
+            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583"
+              stroke-width=".21696301"></path>
+            <path class="light-bulb__filament"
+              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292"
+              stroke-width=".25654384"></path>
+          </g>
+          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
+          <circle class="light-bulb__bloom" r="3.5018382" cx="42.372742" cy="286.7189" stroke-width=".93382347"
+            stroke-linecap="round" stroke-linejoin="round"></circle>
+        </g>
+      </g>
+      <g class="light-bulb light-bulb--6">
+        <path class="light-bulb__chord" d="M68.9130633.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
+        <g class="light-bulb__bulb" transform="translate(26.4080317 -211.35093658)">
+          <circle class="light-bulb__glass" cx="42.372742" cy="286.7189" r="3.8407259" stroke-width=".25604835"
+            stroke-linecap="round" stroke-linejoin="round"></circle>
+          <rect class="light-bulb__fitting" width="5.2916665" height="3.96875" x="39.8592" y="279.35907" ry=".37417734">
+          </rect>
+          <g class="light-bulb__filament">
+            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583"
+              stroke-width=".21696301"></path>
+            <path class="light-bulb__filament"
+              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292"
+              stroke-width=".25654384"></path>
+          </g>
+          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
+          <circle class="light-bulb__bloom" cy="286.7189" cx="42.372742" r="3.5018382" stroke-linecap="round"
+            stroke-linejoin="round"></circle>
+        </g>
+      </g>
+      <g class="light-bulb light-bulb--5">
+        <path class="light-bulb__chord" d="M60.9755633.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
+        <g class="light-bulb__bulb" transform="translate(18.4705317 -211.35093658)">
+          <circle class="light-bulb__glass" r="3.8407259" cy="286.7189" cx="42.372742" stroke-width=".25604835"
+            stroke-linecap="round" stroke-linejoin="round"></circle>
+          <rect class="light-bulb__fitting" ry=".37417734" y="279.35907" x="39.8592" height="3.96875" width="5.2916665">
+          </rect>
+          <g class="light-bulb__filament">
+            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583"
+              stroke-width=".21696301"></path>
+            <path class="light-bulb__filament"
+              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292"
+              stroke-width=".25654384"></path>
+          </g>
+          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
+          <circle class="light-bulb__bloom" r="3.5018382" cx="42.372742" cy="286.7189" stroke-linecap="round"
+            stroke-linejoin="round"></circle>
+        </g>
+      </g>
+      <g class="light-bulb light-bulb--2">
+        <path class="light-bulb__chord" d="M37.1630633.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
+        <g class="light-bulb__bulb" transform="translate(-5.3419683 -211.35093658)">
+          <circle class="light-bulb__glass" cx="42.372742" cy="286.7189" r="3.8407259" stroke-width=".25604835"
+            stroke-linecap="round" stroke-linejoin="round"></circle>
+          <rect class="light-bulb__fitting" width="5.2916665" height="3.96875" x="39.8592" y="279.35907" ry=".37417734">
+          </rect>
+          <g class="light-bulb__filament">
+            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583"
+              stroke-width=".21696301"></path>
+            <path class="light-bulb__filament"
+              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292"
+              stroke-width=".25654384"></path>
+          </g>
+          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
+          <circle class="light-bulb__bloom" cy="286.7189" cx="42.372742" r="3.5018382" stroke-linecap="round"
+            stroke-linejoin="round"></circle>
+        </g>
+      </g>
+      <g class="light-bulb light-bulb--1">
+        <path class="light-bulb__chord" d="M29.2255633.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
+        <g class="light-bulb__bulb" transform="translate(-13.2794683 -211.35093658)">
+          <circle class="light-bulb__glass" r="3.8407259" cy="286.7189" cx="42.372742" stroke-width=".25604835"
+            stroke-linecap="round" stroke-linejoin="round"></circle>
+          <rect class="light-bulb__fitting" ry=".37417734" y="279.35907" x="39.8592" height="3.96875" width="5.2916665">
+          </rect>
+          <g class="light-bulb__filament">
+            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583"
+              stroke-width=".21696301"></path>
+            <path class="light-bulb__filament"
+              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292"
+              stroke-width=".25654384"></path>
+          </g>
+          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
+          <circle class="light-bulb__bloom" r="3.5018382" cx="42.372742" cy="286.7189" stroke-linecap="round"
+            stroke-linejoin="round"></circle>
+        </g>
+      </g>
+      <g class="light-bulb light-bulb--4">
+        <path class="light-bulb__chord" d="M53.0380634.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
+        <g class="light-bulb__bulb" transform="translate(10.5330318 -211.35093658)">
+          <circle class="light-bulb__glass" cx="42.372742" cy="286.7189" r="3.8407259" stroke-width=".25604835"
+            stroke-linecap="round" stroke-linejoin="round"></circle>
+          <rect class="light-bulb__fitting" width="5.2916665" height="3.96875" x="39.8592" y="279.35907" ry=".37417734">
+          </rect>
+          <g class="light-bulb__filament">
+            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583" fill="none"
+              stroke-width=".21696301"></path>
+            <path class="light-bulb__filament"
+              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292" fill="none"
+              stroke-width=".25654384"></path>
+          </g>
+          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
+          <circle class="light-bulb__bloom" cy="286.7189" cx="42.372742" r="3.5018382" stroke-linecap="round"
+            stroke-linejoin="round"></circle>
+        </g>
+      </g>
+    </svg>
   </div>
+  <div class="banner-container"></div>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.1.1/gsap.min.js'></script>
+  <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/16327/MorphSVGPlugin3.min.js'></script>
+  <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/16327/GSDevTools3.min.js'></script>
+  <script src="./script.js"></script>
 
-  <div id="stage">
-    <button id="reset-corner" onclick="resetGame()">Restart</button>
-
-    <div class="screen" id="start-screen">
-      <h1>Gallery Challenge</h1>
-      <p>Tap a gallery to answer its 10 questions. Explore all six to complete the challenge.</p>
-      <div id="gallery-grid"></div>
-    </div>
-
-    <div class="screen" id="question-screen" style="display:none;">
-      <button class="ghost-btn" id="q-back" onclick="backToMenu()">← Back to galleries</button>
-      <div id="q-progress"></div>
-      <div id="q-category">Category</div>
-      <div id="q-prompt">Question text goes here</div>
-      <button class="hint-btn" id="hint-btn" onclick="toggleHint()">💡 Show hint</button>
-      <div id="hint-box"></div>
-      <div id="q-options"></div>
-      <div id="feedback"></div>
-    </div>
-
-    <div class="screen" id="gallery-end" style="display:none;">
-      <h2 id="gallery-end-title">Gallery complete</h2>
-      <div class="n" id="gallery-end-score">0 / 0 correct</div>
-      <button class="big-btn" onclick="backToMenu()">Back to galleries</button>
-    </div>
-
-    <div class="screen" id="end-screen" style="display:none;">
-      <h1>Challenge complete</h1>
-      <div id="end-summary">
-        <div class="sum-card"><div class="n" id="end-score">0</div><div class="l">Points</div></div>
-        <div class="sum-card"><div class="n" id="end-correct">0</div><div class="l">Correct answers</div></div>
-        <div class="sum-card"><div class="n" id="end-visited">0 / 6</div><div class="l">Galleries completed</div></div>
-      </div>
-      <p id="end-note">Nice work exploring today.</p>
-      <button class="big-btn" onclick="resetGame()">Play again</button>
-    </div>
-
-  </div>
-</div>
-
-<script>
-var GALLERIES = [
-  {
-    id: "navarasa", name: "Navarasa gallery", icon: "\uD83C\uDFAD", cat: "Expression",
-    questions: [
-      { prompt: "The Navarasa gallery shows nine facial expressions tied to nine emotions. What field of science studies how a facial expression connects to an inner emotion?",
-        options: ["Astronomy", "Psychology / affective science", "Geology", "Thermodynamics"], correct: 1,
-        explain: "Psychology and affective science study how the muscles behind a facial expression relate to the emotion a person is feeling.",
-        hint: "Think about where displayed emotions actually come from — inside or outside the body." },
-      { prompt: "You try showing anger using only your eyebrows, without moving your mouth. What does that tell you about how expressions are built?",
-        options: ["Expressions come from one single muscle", "Expressions are built from combinations of several muscle groups", "Eyebrows have no role in expression", "All emotions look identical on the face"], correct: 1,
-        explain: "A believable expression usually needs several muscle groups working together — eyebrows alone can only carry part of it.",
-        hint: "Think about whether one muscle alone can carry a whole convincing expression." },
-      { prompt: "Two people from different countries both recognise a photo of someone smiling as happy. What does this suggest about some facial expressions?",
-        options: ["They are learned separately in every culture", "Some core expressions are widely recognised across cultures", "Smiling is a modern invention", "It's coincidence with no explanation"], correct: 1,
-        explain: "Research on facial expressions has found a set of core expressions that are recognised similarly across very different cultures.",
-        hint: "Think about whether smiling needs to be taught separately in every single place." },
-      { prompt: "The word 'rasa' in the Navarasa tradition roughly translates to which idea?", 
-        options: ["A type of dance step only", "An essence or flavour of emotion meant to be tasted or felt by an audience", "A musical note", "A costume colour"], correct: 1,
-        explain: "In Indian aesthetic theory, rasa refers to the essence of an emotion that a performance evokes in the person experiencing it.",
-        hint: "Think of 'rasa' as something meant to be experienced by an audience, not just performed." },
-      { prompt: "You feel a genuine smile forming versus a forced, polite smile. What is one physical difference researchers often point to?", 
-        options: ["There is no physical difference at all", "A genuine smile usually also engages the muscles around the eyes", "A forced smile is always wider", "Genuine smiles only happen in the dark"], correct: 1,
-        explain: "A spontaneous smile tends to involve the muscles around the eyes as well as the mouth, while a purely posed smile often does not.",
-        hint: "Look near the eyes, not just at the mouth." },
-      { prompt: "Why might an SC ask a visitor 'what do you notice about this face?' instead of naming the emotion directly?", 
-        options: ["To save time", "To let the visitor observe and describe first, building their own understanding", "Because the SC doesn't know the answer", "It has no real purpose"], correct: 1,
-        explain: "Asking first invites the visitor to observe and reason for themselves, rather than just receiving a label.",
-        hint: "Think about who does the thinking here — the visitor or the SC." },
-      { prompt: "Fear and surprise expressions on the face can look quite similar at a glance. What usually helps tell them apart?", 
-        options: ["They are identical and cannot be told apart", "Subtle differences in eyebrow shape, eye width and mouth tension", "Fear only ever appears in cartoons", "Surprise never involves the eyes"], correct: 1,
-        explain: "Fear and surprise share some features, like raised eyebrows, but differ in details such as mouth tension and how wide the eyes open.",
-        hint: "Look closely at eyebrow shape and mouth tension, not just the overall look." },
-      { prompt: "If someone's culture discourages showing anger openly in public, what does that mean for how anger is expressed?", 
-        options: ["They stop feeling anger entirely", "The felt emotion may be similar, but display rules can change how openly it's shown", "Anger becomes impossible to detect at all", "It has no effect on expression"], correct: 1,
-        explain: "Psychologists describe 'display rules' — cultural norms that shape how openly an emotion is expressed, even when the underlying feeling is similar.",
-        hint: "Try separating what's felt inside from what's shown outside." },
-      { prompt: "A visitor mimics all nine rasas in front of a mirror. What kind of learning is this closest to?", 
-        options: ["Passive listening", "Embodied, hands-on exploration of emotional expression", "Memorising a textbook definition", "Watching a video with no participation"], correct: 1,
-        explain: "Physically trying out each expression is embodied, hands-on exploration — different from passively receiving information.",
-        hint: "Think about doing something with your own face, not just watching someone else's." },
-      { prompt: "Why is it useful for an SC to know the working definitions of expression and emotion, rather than using the words interchangeably?", 
-        options: ["It isn't useful, they mean the same thing", "An expression is the outward facial display; an emotion is the internal felt state, and keeping them distinct avoids confusing visitors", "Only actors need to know the difference", "Visitors never ask about this distinction"], correct: 1,
-        explain: "Keeping 'expression' (what's shown) and 'emotion' (what's felt) distinct avoids the kind of loose usage the pedagogy notes flag as worth watching for.",
-        hint: "Think about two words that get used interchangeably but don't mean quite the same thing." }
-    ]
-  },
-  {
-    id: "kinetic", name: "Kinetic gallery", icon: "\u2699\uFE0F", cat: "Mechanics",
-    questions: [
-      { prompt: "In the kinetic gallery's swinging-ball pendulum, you pull back two balls and let go. About how many balls swing out on the far side?",
-        options: ["One", "Two", "All of them", "None"], correct: 1,
-        explain: "Momentum and energy are conserved and pass through the row of balls, so releasing two balls sends two balls out the other end.",
-        hint: "Watch what happens at the far end of the row, not just the middle." },
-      { prompt: "On the pulley, pulling the rope a long distance moves the load only a short distance. What have you gained in exchange?",
-        options: ["Nothing, it's a trick", "Mechanical advantage — less force needed to lift the load", "Extra rope", "More weight"], correct: 1,
-        explain: "A pulley trades distance for force: you pull further, but need less effort to lift the same load.",
-        hint: "Think about what you trade away in exchange for something for free." },
-      { prompt: "A Hoberman ring expands to several times its folded size. What lets it do that without any single part stretching?",
-        options: ["The material is elastic like rubber", "A repeating scissor-linkage of rigid struts", "Magnets pushing it apart", "Air pressure inside it"], correct: 1,
-        explain: "Every strut is rigid — it's the linked, scissor-like joints, repeated many times, that let the whole shape expand and fold.",
-        hint: "Look at how the joints are connected, not the rigidity of the rods themselves." },
-      { prompt: "On the pendulum, why does the row of balls eventually stop swinging instead of continuing forever?", 
-        options: ["Momentum disappears instantly", "Energy is gradually lost to friction and air resistance as sound and heat", "The balls run out of momentum on purpose", "It never actually stops"], correct: 1,
-        explain: "Small amounts of energy leak out as sound, heat and air resistance at each collision, so the swinging gradually shrinks and stops.",
-        hint: "Ask where the missing energy could be leaking out to." },
-      { prompt: "If you use a single fixed pulley to lift a bucket straight up, how does the amount of force needed compare to lifting it by hand?", 
-        options: ["It's roughly the same force, just in a different direction", "It's always far less force", "It's always far more force", "A fixed pulley cannot lift anything"], correct: 0,
-        explain: "A single fixed pulley mainly changes the direction you pull in — the force needed stays about the same as lifting directly.",
-        hint: "Compare the direction you pull in versus the actual amount of force needed." },
-      { prompt: "Two visitors push the Hoberman ring from opposite sides at the same time. What happens to the force needed compared to one person pushing alone?", 
-        options: ["It becomes impossible to move", "The combined effort can move it with less strain on each individual", "Nothing changes for either person", "The ring locks permanently"], correct: 1,
-        explain: "Sharing the effort across two people means each person needs to contribute less force to achieve the same expansion or collapse.",
-        hint: "Think about what happens when effort is shared between two people." },
-      { prompt: "Which everyday object works on a similar folding-scissor principle to the Hoberman ring?", 
-        options: ["A rigid steel beam", "A collapsible umbrella or a scissor lift", "A glass window", "A solid brick"], correct: 1,
-        explain: "Collapsible umbrellas and scissor lifts both use repeating linked struts that pivot together, the same underlying idea as a Hoberman ring.",
-        hint: "Think of another everyday folding object you've used before." },
-      { prompt: "In a multi-pulley (block and tackle) system with several loops of rope, what generally happens to the force needed as you add more loops?", 
-        options: ["The force needed increases with more loops", "The force needed generally decreases, but you must pull more rope through", "Nothing changes at all", "More loops always makes lifting impossible"], correct: 1,
-        explain: "Each additional supporting rope loop shares the load further, reducing the pulling force needed, at the cost of pulling a longer length of rope.",
-        hint: "More loops of rope generally means more of something being shared out." },
-      { prompt: "What is the underlying physical quantity that stays roughly the same as it moves down the row of pendulum balls?", 
-        options: ["Colour", "Momentum being transferred from ball to ball", "Temperature", "Sound alone, with no motion involved"], correct: 1,
-        explain: "Momentum is transferred through the touching balls almost instantly, which is why the far end swings out while the middle balls barely move.",
-        hint: "Think about what travels from ball to ball almost instantly in a collision." },
-      { prompt: "If you wanted to make the Hoberman ring expand to a bigger maximum size, what design change would most directly help?", 
-        options: ["Making the struts longer", "Painting the struts a different colour", "Adding more weight to the centre", "Removing the pivot joints"], correct: 0,
-        explain: "Since the ring's size scales with strut length, longer struts (with the same linkage pattern) let the structure expand further before locking.",
-        hint: "Think about which single measurement of a strut controls how big the ring can get." }
-    ]
-  },
-  {
-    id: "light", name: "Light gallery", icon: "\uD83D\uDCA1", cat: "Optics",
-    questions: [
-      { prompt: "You shine a red light and a green light so their beams overlap on a white screen. What colour appears where they overlap?",
-        options: ["Yellow", "Purple", "Brown", "Black"], correct: 0,
-        explain: "Coloured light mixes by adding wavelengths together, unlike paint. Red and green light combine to make yellow.",
-        hint: "Light mixes differently from paint — think in terms of adding colours together." },
-      { prompt: "You notice your shadow on the gallery wall has a faint colour instead of plain grey. What is most likely causing that?",
-        options: ["A broken bulb", "A different coloured light filling in where your shadow blocks the other light", "Your eyes playing tricks with no real cause", "The wall is painted that colour"], correct: 1,
-        explain: "When multiple coloured lights shine from different angles, blocking one leaves the others to fill the shadow, tinting it.",
-        hint: "Think about which light source is left unblocked when something casts a shadow." },
-      { prompt: "White light passes through a prism and spreads into a rainbow of colours on the wall. What does this show about white light?",
-        options: ["White light is a single, pure colour", "White light is actually a mix of many colours bent by different amounts", "The prism adds colour to the light", "It only happens with sunlight, never bulbs"], correct: 1,
-        explain: "White light contains many wavelengths; a prism bends each wavelength by a slightly different amount, spreading them into a visible spectrum.",
-        hint: "A prism doesn't add colour to light — it only separates colours already there." },
-      { prompt: "Red, green and blue light overlapped together at full brightness on a screen appear as what colour?", 
-        options: ["Black", "White", "Grey only", "Pink"], correct: 1,
-        explain: "Red, green and blue are the additive primary colours of light — combined at full strength they appear white to our eyes.",
-        hint: "Red, green and blue light at full strength combine toward one very familiar colour." },
-      { prompt: "You wear a pair of red-tinted glasses and look at a picture with red and blue shapes. What happens to the red shapes?", 
-        options: ["They look darker or disappear against the red tint", "They turn bright green", "Nothing changes at all", "They become invisible ink"], correct: 0,
-        explain: "A red filter mainly lets red light through, so red shapes blend into the tinted view while other colours stand out or look darkened.",
-        hint: "A red filter mostly lets through light that's already close to its own colour." },
-      { prompt: "A beam of light bends when it passes from air into water at an angle. What is this bending of light called?", 
-        options: ["Reflection", "Refraction", "Diffraction only for sound", "Absorption"], correct: 1,
-        explain: "Refraction is the bending of light as it changes speed moving between materials like air and water.",
-        hint: "Think about what happens to light's speed and path when it enters a new material." },
-      { prompt: "Why does a mirror show a clear reflection while a plain wooden wall does not?", 
-        options: ["A mirror's smooth surface reflects light in an organised way, while a rough surface scatters it", "Mirrors create their own light", "Wood absorbs all light with no reflection", "There is no real difference"], correct: 0,
-        explain: "A mirror's very smooth surface reflects light rays in an organised, predictable pattern, while a rough surface scatters light in many directions.",
-        hint: "Smooth and rough surfaces treat light very differently when it bounces off them." },
-      { prompt: "On a light table, mixing cyan and yellow coloured light together tends to look close to which colour?", 
-        options: ["Green", "Black", "Red", "White"], correct: 0,
-        explain: "Cyan and yellow light overlap in the green part of the visible spectrum, so their combination appears close to green.",
-        hint: "Cyan and yellow light overlap somewhere in the middle of the visible spectrum." },
-      { prompt: "In a completely dark room with no light source at all, why can you not see any colour, even bright objects?", 
-        options: ["Because colour is created by objects themselves, with or without light", "Because colour is the result of light reflecting off a surface into your eyes, and there is no light to reflect", "Because your eyes stop working in the dark", "Because black paint absorbs all colour permanently"], correct: 1,
-        explain: "What we perceive as colour depends on light reflecting off a surface and reaching our eyes — without any light source, there is nothing to reflect.",
-        hint: "No light reaching your eyes means nothing to see, no matter what the object is." },
-      { prompt: "Why might a light gallery use lamps of only red, green and blue rather than every colour of paint?", 
-        options: ["Because those are simply cheaper bulbs", "Because combining just these three wavelengths of light can recreate a very wide range of perceived colours", "Because other colours of light don't exist", "Because paint and light mix in exactly the same way"], correct: 1,
-        explain: "Red, green and blue are the additive primaries for light — screens, stage lighting and this kind of gallery rely on combining just these three to produce a wide range of colours.",
-        hint: "A small set of specific wavelengths can recreate a surprisingly wide range of colours." }
-    ]
-  },
-  {
-    id: "sensory", name: "Touch wall & magic sand", icon: "\u2728", cat: "Sensors & materials",
-    questions: [
-      { prompt: "Magic sand can be moulded like wet sand, but your hands come out completely dry. Why?",
-        options: ["It isn't real sand", "Each grain is coated so water can't stick to it", "It's actually a gel", "It's frozen"], correct: 1,
-        explain: "Each grain of magic sand is coated with a water-repelling layer, so grains stick to each other but not to water or skin.",
-        hint: "Think about the coating on each grain, not the sand material itself." },
-      { prompt: "A touch-sensitive wall lights up wherever you place your hand, even in a dark room. What is it most likely sensing?",
-        options: ["Sound from your hand", "The tiny electrical charge naturally present in your skin", "Smell", "Air pressure alone"], correct: 1,
-        explain: "Capacitive touch panels sense the small electrical charge your skin carries, so they work without needing light or pressure.",
-        hint: "Skin naturally carries a small electrical charge, even with a light touch." },
-      { prompt: "The illuminative lights respond differently when you move your hand slowly versus quickly across them. What does that tell you about the sensor?",
-        options: ["It only detects colour", "It can detect motion or speed, not just presence", "It's random and not detecting anything", "It only works with two hands"], correct: 1,
-        explain: "A sensor that reacts differently to slow versus fast movement is picking up motion or speed, not just whether something is present.",
-        hint: "Detecting speed needs more than a simple on-or-off sensor." },
-      { prompt: "If you touch the sensory wall while wearing thick rubber gloves, what would you expect to happen on a capacitive touch panel?", 
-        options: ["It would respond exactly the same as bare skin", "It would likely respond weakly or not at all, since rubber does not conduct charge well", "It would respond even more strongly", "The panel would break"], correct: 1,
-        explain: "Rubber is an insulator, so it blocks the small electrical signal a capacitive sensor relies on, making touch through it weak or undetected.",
-        hint: "Rubber doesn't conduct electrical charge very well." },
-      { prompt: "You push your hand into magic sand and it holds a shape, unlike loose dry beach sand. What property lets it hold together?", 
-        options: ["The water coating makes grains stick to each other slightly", "Magic sand has no grains at all", "It is magnetic", "It becomes a solid block permanently"], correct: 0,
-        explain: "The coating that repels water still allows enough grain-to-grain attraction for the sand to hold a moulded shape, similar to slightly damp sand.",
-        hint: "Slightly-sticky grains, not glue, are what hold the shape together." },
-      { prompt: "Why might a touch wall use many small sensor zones instead of one single large sensor?", 
-        options: ["To make it more expensive for no reason", "So it can tell where exactly you touched, not just that something touched it", "Small sensors always fail more often", "It has no advantage"], correct: 1,
-        explain: "Dividing the wall into many zones lets the system pinpoint location, so it can respond differently depending on exactly where you touch.",
-        hint: "More sensor zones generally means more precise location tracking." },
-      { prompt: "Two people touch the sensory wall at the same time in different spots. What would you expect from a well-designed multi-touch panel?", 
-        options: ["It can only register one of the two touches", "It can register and respond to both touches independently", "It would shut down", "It would merge both touches into one point automatically"], correct: 1,
-        explain: "Multi-touch capacitive systems are built to track several separate points of contact at once, similar to how a smartphone screen works.",
-        hint: "Think about how many fingers a smartphone screen can track at once." },
-      { prompt: "If magic sand is left underwater for a long time and then removed, what would you expect?", 
-        options: ["It dissolves completely", "It stays dry inside because the water-repelling coating keeps water from soaking into the grains", "It turns into glass", "It becomes sticky and wet like normal sand"], correct: 1,
-        explain: "Because each grain's coating repels water, magic sand can be submerged and pulled out still dry at its core, unlike ordinary sand.",
-        hint: "The water-repelling coating works whether it's briefly touched or fully submerged." },
-      { prompt: "Why is it a good facilitation move to ask 'what do you think will happen?' before a visitor pushes their hand into the magic sand?", 
-        options: ["It wastes time before the fun part", "It invites a prediction, so the visitor compares their expectation with what actually happens", "There's no benefit, visitors already know", "It only works for adults, not children"], correct: 1,
-        explain: "Asking for a prediction first turns the activity into a test of an idea, making the surprising result more meaningful than if it were just observed.",
-        hint: "Comparing a guess to what actually happens is the whole point of a prediction." },
-      { prompt: "What is one practical limitation of capacitive touch sensors that an SC should be aware of during floor operations?", 
-        options: ["They never fail and need no maintenance", "Dust, moisture or damage on the surface can reduce sensitivity over time", "They work better the more visitors touch them at once, with no limit", "They require no daily checks"], correct: 1,
-        explain: "Like any sensor surface, dirt, moisture or wear can reduce a capacitive panel's sensitivity, which is why exhibit readiness checks matter.",
-        hint: "Sensors, like any equipment on the floor, can wear down with everyday use." }
-    ]
-  },
-  {
-    id: "puzzle", name: "Puzzle gallery", icon: "\uD83E\uDDE9", cat: "Problem solving",
-    questions: [
-      { prompt: "You're stuck on a mechanical puzzle in the Puzzle Gallery. What is usually the most useful first move?",
-        options: ["Force the pieces harder", "Notice what each part can and can't do before trying to solve it", "Ask for the answer immediately", "Give up right away"], correct: 1,
-        explain: "Observing how the parts move before attempting a solution beats forcing it.",
-        hint: "Look closely at how the parts move before you try to move anything yourself." },
-      { prompt: "You try one approach to a puzzle, it fails, so you adjust and try again. What does this pattern of behaviour show?",
-        options: ["You are bad at puzzles", "You are iterating — trying, failing, and adjusting rather than giving up", "The puzzle is broken", "There is only one way to solve any puzzle"], correct: 1,
-        explain: "Trying, failing, and adjusting rather than waiting for the 'correct' method is exactly how open-ended problems get solved.",
-        hint: "Trying, failing, and adjusting again is a process, not a sign of failure." },
-      { prompt: "After solving a puzzle, you think of a totally different way it could have been solved. What does that reflect?",
-        options: ["Just luck", "Going beyond the intended solution to find new approaches", "A mistake in the original solve", "Nothing meaningful"], correct: 1,
-        explain: "Finding an approach beyond what was intended is the kind of thinking that goes past solving into inventing something new.",
-        hint: "Going beyond what was originally intended is a step further than just solving it." },
-      { prompt: "An SC watches a visitor struggle silently on a puzzle for a minute without stepping in. What is the SC most likely doing?", 
-        options: ["Ignoring the visitor", "Allowing productive struggle, since figuring it out matters more than speed", "Failing at their job", "Waiting for a break"], correct: 1,
-        explain: "Withholding help a little longer than feels comfortable is a deliberate facilitation choice, since struggling productively builds real understanding.",
-        hint: "Sometimes the most helpful thing an SC can do is nothing, for a moment." },
-      { prompt: "A visitor solves a puzzle quickly by copying the exact steps a friend just did. What has that visitor mainly practised?", 
-        options: ["Independent problem solving", "Imitation, which can be a starting point but is not the same as solving it themselves", "Coming up with something new", "Nothing at all"], correct: 1,
-        explain: "Copying steps can be a useful early step, but it's imitation rather than the visitor's own reasoning — worth noticing as a facilitator.",
-        hint: "Copying someone else's steps and reasoning it out yourself are two different skills." },
-      { prompt: "Why might a puzzle with several valid solutions be more useful for facilitation than one with only a single fixed answer?", 
-        options: ["It has no advantage", "It allows different visitors to explore different valid strategies and compare approaches", "Multiple solutions always confuse visitors", "It makes the puzzle less scientific"], correct: 1,
-        explain: "Open-ended puzzles let visitors take different valid routes, which supports comparing strategies and building confidence in their own reasoning.",
-        hint: "Multiple valid paths let a visitor compare approaches, not just repeat one." },
-      { prompt: "A child rearranges the same three puzzle pieces in every possible order before finding the fit. What kind of approach is this?", 
-        options: ["Random guessing with no structure", "Systematic trial — testing arrangements methodically rather than giving up", "Cheating", "Copying someone else"], correct: 1,
-        explain: "Working through possible arrangements methodically, even if simple, is a structured trial-and-error approach rather than random guessing.",
-        hint: "Testing every possible order is still a method, even if it looks simple." },
-      { prompt: "What does 'tolerating not knowing' actually look like on the floor?", 
-        options: ["A visitor immediately asking the SC for the answer", "A visitor continuing to try things even while unsure if they're on the right track", "A visitor refusing to touch the puzzle", "A visitor memorising instructions before starting"], correct: 1,
-        explain: "Tolerating not knowing means a visitor keeps engaging and experimenting even without certainty, rather than needing reassurance at every step.",
-        hint: "It's about continuing despite uncertainty, not needing to feel sure first." },
-      { prompt: "Why does giving minimal instructions on a hands-on puzzle activity often help rather than hurt?", 
-        options: ["Minimal instructions cause frustration and should be avoided entirely", "The instruction gap is where visitors have to think, experiment and build creative confidence", "Instructions are unnecessary because visitors already know everything", "It has no real effect either way"], correct: 1,
-        explain: "Too much upfront instruction closes the gap where visitors would otherwise think, experiment and build their own creative confidence.",
-        hint: "Less upfront instruction can sometimes lead to more real learning." },
-      { prompt: "A visitor asks the SC to just tell them the puzzle's solution. What response best supports their own thinking?", 
-        options: ["Immediately state the full solution", "Ask a guiding question that lets the visitor try the next step themselves", "Ignore the question entirely", "Tell them to leave the gallery"], correct: 1,
-        explain: "A guiding question that hands the next step back to the visitor moves them from passively receiving an answer toward working it out themselves.",
-        hint: "A well-placed question can hand the next step back to the visitor themselves." }
-    ]
-  },
-  {
-    id: "digital", name: "Digital gallery", icon: "\uD83D\uDDA5\uFE0F", cat: "Digital exhibits",
-    questions: [
-      { prompt: "A digital exhibit changes what it shows based on how close you stand to it. What is this an example of?",
-        options: ["A static poster", "A proximity-responsive interactive system", "A printed label", "Random chance"], correct: 1,
-        explain: "Exhibits that respond to a visitor's position or movement are called proximity-responsive, or motion-interactive, systems.",
-        hint: "Think about what 'distance' means to a machine that isn't being touched at all." },
-      { prompt: "A digital screen reacts differently depending on where and how hard you tap it. What kind of input is it reading?",
-        options: ["Only sound", "Touch location and pressure", "Only your voice", "Nothing, it's pre-programmed to loop"], correct: 1,
-        explain: "Touchscreens that respond differently by location or pressure are reading both where you touched and, on some panels, how hard.",
-        hint: "Think about two separate properties a touchscreen can measure about your finger." },
-      { prompt: "You do the same action twice on a digital exhibit and get two different results. What is the most likely reason?",
-        options: ["The exhibit is broken", "The exhibit includes an element of randomness or changing state by design", "You imagined the difference", "Digital exhibits never repeat actions correctly"], correct: 1,
-        explain: "Many digital exhibits are designed with some randomness or a changing internal state, so repeating an action can give a different result each time.",
-        hint: "Repeating an action doesn't always mean identical output — some systems are built that way on purpose." },
-      { prompt: "A digital exhibit uses a camera to detect when you wave your hand, without you touching anything. What kind of sensing is this?", 
-        options: ["Capacitive touch", "Computer vision or motion detection using a camera", "Sound-only detection", "It cannot detect anything without touch"], correct: 1,
-        explain: "Camera-based systems that interpret movement without physical contact rely on computer vision or optical motion detection.",
-        hint: "Cameras can sense motion without any physical contact at all." },
-      { prompt: "Why might a digital exhibit ask you to complete a task before unlocking the next screen?", 
-        options: ["To slow visitors down for no reason", "To create a built-in sequence that encourages trying something before moving on", "Digital exhibits cannot be sequenced", "It's a technical glitch"], correct: 1,
-        explain: "A gated sequence is a deliberate design choice that nudges visitors to actually engage with a step, rather than skipping straight to the end.",
-        hint: "A locked next step is designed to encourage an action before moving on." },
-      { prompt: "A digital display shows a graph that updates live as visitors interact with a nearby physical exhibit. What does this pairing demonstrate?", 
-        options: ["Digital and physical exhibits are always unrelated", "Data from a physical action can be captured and visualised digitally in real time", "The graph is unrelated to visitor actions", "This kind of pairing is not possible"], correct: 1,
-        explain: "Linking a physical action to a live digital display shows how sensors can capture real-world data and turn it into an immediate visualisation.",
-        hint: "A live update on screen means data is actively flowing from one system into another." },
-      { prompt: "If a digital exhibit's screen freezes and stops responding to touch, what is the most likely category of issue?", 
-        options: ["A software or hardware fault needing a reset or maintenance log entry", "The exhibit is intentionally designed to freeze", "All digital exhibits freeze permanently after one use", "It means the exhibit was never working"], correct: 0,
-        explain: "A frozen or unresponsive screen is typically a software or connectivity fault — exactly the kind of downtime that should be logged, not just worked around.",
-        hint: "Broken or frozen behaviour on a screen usually has a technical, loggable cause." },
-      { prompt: "Why might a digital exhibit deliberately give visitors an open-ended creative tool, like a drawing or building simulator, instead of a fixed quiz?", 
-        options: ["Open-ended tools have no value", "It lets visitors invent their own use of the tool instead of following a fixed path", "Quizzes are always better for learning", "There's no real difference between the two formats"], correct: 1,
-        explain: "An open-ended digital tool invites visitors to invent their own goals within it, rather than just following a fixed set of steps.",
-        hint: "An open-ended tool deliberately doesn't tell you what to do — that's the whole idea." },
-      { prompt: "A visitor asks how a digital exhibit 'knows' the right answer to check their input against. What is generally happening behind the scenes?", 
-        options: ["Magic, with no real explanation", "The exhibit's software compares the input against pre-programmed rules or data", "The screen is guessing randomly every time", "There is a hidden person answering manually"], correct: 1,
-        explain: "Interactive exhibits run software that compares visitor input against programmed rules, ranges or stored data to decide how to respond.",
-        hint: "Software needs some kind of reference to measure your input against." },
-      { prompt: "Why is it useful for an SC to know roughly how a digital exhibit works internally, even without being a programmer?", 
-        options: ["It's not useful at all for floor work", "It helps the SC explain behaviour accurately and troubleshoot simple issues instead of guessing", "Only the Programming Team ever needs this knowledge", "Digital exhibits never have any issues on the floor"], correct: 1,
-        explain: "A working sense of how an exhibit senses and responds helps an SC give visitors an accurate explanation and flag genuine faults rather than fabricating a guess.",
-        hint: "Knowing roughly how something works helps you both explain it and spot a real fault." }
-    ]
-  }
-];
-
-var TIME_PER_Q = 60;
-
-var state = {};
-function freshState(){
-  return {
-    visited: {},
-    score: 0,
-    correctCount: 0,
-    totalQuestions: GALLERIES.reduce(function(sum,g){ return sum + g.questions.length; }, 0),
-    timer: null,
-    timeLeft: TIME_PER_Q,
-    answered: false,
-    currentGalleryId: null,
-    currentQIdx: 0,
-    currentGalleryCorrect: 0
-  };
-}
-
-function el(id){ return document.getElementById(id); }
-
-function updateDashboard(){
-  el('dash-score').textContent = state.score;
-  var visitedCount = Object.keys(state.visited).length;
-  el('dash-visited').textContent = visitedCount + ' / ' + GALLERIES.length;
-}
-
-function renderGalleryGrid(){
-  var grid = el('gallery-grid');
-  grid.innerHTML = '';
-  GALLERIES.forEach(function(g){
-    var done = !!state.visited[g.id];
-    var tile = document.createElement('button');
-    tile.className = 'gtile' + (done ? ' done' : '');
-    var status = done ? (state.visited[g.id].correct + ' / ' + g.questions.length + ' correct') : (g.questions.length + ' questions — tap to start');
-    tile.innerHTML =
-      '<div class="g-check">\u2713</div>' +
-      '<div class="g-icon">'+g.icon+'</div>' +
-      '<div class="g-name">'+g.name+'</div>' +
-      '<div class="g-status">'+status+'</div>';
-    tile.onclick = function(){ openGallery(g.id); };
-    grid.appendChild(tile);
-  });
-}
-
-function openGallery(id){
-  state.currentGalleryId = id;
-  state.currentQIdx = 0;
-  state.currentGalleryCorrect = 0;
-  el('start-screen').style.display = 'none';
-  el('gallery-end').style.display = 'none';
-  el('end-screen').style.display = 'none';
-  var qs = el('question-screen');
-  qs.style.display = 'flex';
-  qs.classList.remove('enter'); void qs.offsetWidth; qs.classList.add('enter');
-  showQuestion();
-}
-
-function currentGallery(){
-  return GALLERIES.find(function(x){ return x.id === state.currentGalleryId; });
-}
-
-function renderProgress(){
-  var g = currentGallery();
-  var wrap = el('q-progress');
-  wrap.innerHTML = '';
-  for (var i=0;i<g.questions.length;i++){
-    var d = document.createElement('div');
-    d.className = 'qdot' + (i < state.currentQIdx ? ' done' : (i === state.currentQIdx ? ' current' : ''));
-    wrap.appendChild(d);
-  }
-}
-
-function showQuestion(){
-  state.answered = false;
-  var g = currentGallery();
-  var q = g.questions[state.currentQIdx];
-  el('q-category').textContent = g.cat;
-  el('q-prompt').textContent = q.prompt;
-  el('feedback').innerHTML = '';
-  renderProgress();
-
-  var hintBox = el('hint-box');
-  hintBox.classList.remove('open');
-  hintBox.textContent = '';
-  var hintBtn = el('hint-btn');
-  hintBtn.textContent = '💡 Show hint';
-  hintBtn.disabled = false;
-  hintBtn.style.display = q.hint ? 'inline-block' : 'none';
-  state.currentHint = q.hint || '';
-
-  var optWrap = el('q-options');
-  optWrap.innerHTML = '';
-  var letters = ['A','B','C','D'];
-  q.options.forEach(function(optText, i){
-    var b = document.createElement('button');
-    b.className = 'opt';
-    b.innerHTML = '<span class="opt-letter">'+letters[i]+'</span><span>'+optText+'</span>';
-    b.onclick = function(){ revealAnswer(i); };
-    optWrap.appendChild(b);
-  });
-
-  startTimer();
-}
-
-function toggleHint(){
-  var box = el('hint-box');
-  var btn = el('hint-btn');
-  if (box.classList.contains('open')) return;
-  box.textContent = state.currentHint;
-  box.classList.add('open');
-  btn.textContent = '💡 Hint shown';
-  btn.disabled = true;
-}
-
-function startTimer(){
-  clearInterval(state.timer);
-  state.timeLeft = TIME_PER_Q;
-  var circumference = 150.8;
-  el('timer-arc').setAttribute('stroke-dasharray', circumference);
-  el('timer-arc').setAttribute('stroke-dashoffset', 0);
-  el('timer-text').textContent = state.timeLeft;
-  el('timer-ring').classList.remove('low');
-  state.timer = setInterval(function(){
-    state.timeLeft -= 1;
-    el('timer-text').textContent = Math.max(state.timeLeft,0);
-    var offset = circumference * (1 - state.timeLeft/TIME_PER_Q);
-    el('timer-arc').setAttribute('stroke-dashoffset', offset);
-    if (state.timeLeft <= 10){
-      el('timer-ring').classList.add('low');
-    }
-    if (state.timeLeft <= 0){
-      clearInterval(state.timer);
-      if (!state.answered) revealAnswer(-1);
-    }
-  }, 1000);
-}
-
-function revealAnswer(chosenIdx){
-  if (state.answered) return;
-  state.answered = true;
-  clearInterval(state.timer);
-  var g = currentGallery();
-  var q = g.questions[state.currentQIdx];
-  var opts = document.querySelectorAll('#q-options .opt');
-  opts.forEach(function(b, i){
-    b.style.pointerEvents = 'none';
-    if (i === q.correct) b.classList.add('correct');
-    else if (i === chosenIdx) b.classList.add('wrong');
-    else b.classList.add('dim');
-  });
-
-  var isCorrect = (chosenIdx === q.correct);
-  if (isCorrect){
-    var timeBonus = Math.max(0, state.timeLeft);
-    var points = 10 + timeBonus;
-    state.score += points;
-    state.correctCount += 1;
-    state.currentGalleryCorrect += 1;
-    el('feedback').innerHTML = '<div class="fb-good">Correct — +'+points+' points<span class="fb-note">'+q.explain+'</span></div>';
-    fireConfetti();
-  } else {
-    var label = chosenIdx === -1 ? "Time's up" : "Not quite";
-    el('feedback').innerHTML = '<div class="fb-bad">'+label+'<span class="fb-note">'+q.explain+'</span></div>';
-  }
-
-  updateDashboard();
-  if (isCorrect){
-    var dv = el('dash-score');
-    dv.classList.remove('bump'); void dv.offsetWidth; dv.classList.add('bump');
-  }
-
-  setTimeout(function(){
-    state.currentQIdx += 1;
-    if (state.currentQIdx >= g.questions.length){
-      finishGallery();
-    } else {
-      showQuestion();
-    }
-  }, 2600);
-}
-
-function finishGallery(){
-  var g = currentGallery();
-  state.visited[g.id] = { correct: state.currentGalleryCorrect };
-  updateDashboard();
-
-  el('question-screen').style.display = 'none';
-  var ge = el('gallery-end');
-  ge.style.display = 'flex';
-  ge.classList.remove('enter'); void ge.offsetWidth; ge.classList.add('enter');
-  el('gallery-end-title').textContent = g.name + ' complete';
-  el('gallery-end-score').textContent = state.currentGalleryCorrect + ' / ' + g.questions.length + ' correct';
-
-  if (Object.keys(state.visited).length >= GALLERIES.length){
-    setTimeout(endGame, 1800);
-  }
-}
-
-function backToMenu(){
-  clearInterval(state.timer);
-  el('question-screen').style.display = 'none';
-  el('gallery-end').style.display = 'none';
-  el('end-screen').style.display = 'none';
-  var ss = el('start-screen');
-  ss.style.display = 'flex';
-  ss.classList.remove('enter'); void ss.offsetWidth; ss.classList.add('enter');
-  renderGalleryGrid();
-}
-
-function endGame(){
-  clearInterval(state.timer);
-  el('question-screen').style.display = 'none';
-  el('gallery-end').style.display = 'none';
-  el('start-screen').style.display = 'none';
-  var es = el('end-screen');
-  es.style.display = 'flex';
-  es.classList.remove('enter'); void es.offsetWidth; es.classList.add('enter');
-  el('end-score').textContent = state.score;
-  el('end-correct').textContent = state.correctCount + ' / ' + state.totalQuestions;
-  el('end-visited').textContent = Object.keys(state.visited).length + ' / ' + GALLERIES.length;
-
-  var pct = state.correctCount / state.totalQuestions;
-  var note;
-  if (pct >= 0.8) note = "Excellent work — you got almost everything right across all six galleries.";
-  else if (pct >= 0.5) note = "Good going — you got more than half right. Revisit a gallery to sharpen the rest.";
-  else note = "Nice start — explore each gallery again and see how your score improves.";
-  el('end-note').textContent = note;
-  if (pct >= 0.8) fireConfetti();
-}
-
-function resetGame(){
-  clearInterval(state.timer);
-  state = freshState();
-  updateDashboard();
-  el('question-screen').style.display = 'none';
-  el('gallery-end').style.display = 'none';
-  el('end-screen').style.display = 'none';
-  var ss = el('start-screen');
-  ss.style.display = 'flex';
-  ss.classList.remove('enter'); void ss.offsetWidth; ss.classList.add('enter');
-  renderGalleryGrid();
-}
-
-var ICON_SET = [
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="4" /><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(120 12 12)"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 3h6M10 3v6l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 9V3"/><path d="M8 15h8"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><path d="M6 4h4M14 4h4M6 20h4M14 20h4M8 20v-4M16 20v-4"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M21 12h-2.4M5.4 12H3M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7M18.4 18.4l-1.7-1.7M7.3 7.3 5.6 5.6"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2h5a3 3 0 0 1 1.1-2A6 6 0 0 0 12 3Z"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3c0 6 12 12 12 18M18 3c0 6-12 12-12 18"/><path d="M7.5 7h9M7.5 17h9"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="6"/><path d="M20 20l-5.5-5.5"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4.2"/></svg>',
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3 4 19h16L12 3Z"/><path d="M9.5 14.5h5"/></svg>'
-];
-var ICON_COLORS = ['','f-moss','f-clay','f-plum','f-gold'];
-var CONFETTI_COLORS = ['#3b6d11','#993c1d','#534ab7','#854f0b','#173404'];
-function fireConfetti(){
-  var count = 22;
-  var originX = window.innerWidth/2, originY = window.innerHeight*0.4;
-  for (var i=0;i<count;i++){
-    var piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    piece.style.background = CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)];
-    piece.style.left = originX+'px';
-    piece.style.top = originY+'px';
-    var angle = Math.random()*Math.PI*2;
-    var dist = 80 + Math.random()*160;
-    var dx = Math.cos(angle)*dist;
-    var dy = Math.sin(angle)*dist - 40;
-    var rot = (Math.random()*720-360).toFixed(0);
-    document.body.appendChild(piece);
-    piece.animate([
-      { transform:'translate(0,0) rotate(0deg)', opacity:1 },
-      { transform:'translate('+dx+'px,'+(dy+220)+'px) rotate('+rot+'deg)', opacity:0 }
-    ], { duration: 900 + Math.random()*400, easing:'cubic-bezier(.25,.7,.4,1)' });
-    (function(p){ setTimeout(function(){ p.remove(); }, 1400); })(piece);
-  }
-}
-
-function renderFloaties(){
-  var bg = el('floaty-bg');
-  var count = 16;
-  var vw = window.innerWidth, vh = window.innerHeight;
-  for (var i=0;i<count;i++){
-    var wrap = document.createElement('div');
-    var size = 26 + Math.round(Math.random()*30);
-    var colorClass = ICON_COLORS[Math.floor(Math.random()*ICON_COLORS.length)];
-    wrap.className = 'floaty' + (colorClass ? ' '+colorClass : '');
-    wrap.style.width = size+'px';
-    wrap.style.height = size+'px';
-    wrap.style.left = Math.round(Math.random()*Math.max(vw-size,0))+'px';
-    wrap.style.top = Math.round(Math.random()*Math.max(vh-size,0))+'px';
-    wrap.style.animationDuration = (6 + Math.random()*6).toFixed(1)+'s';
-    wrap.style.animationDelay = (Math.random()*4).toFixed(1)+'s';
-    wrap.innerHTML = ICON_SET[Math.floor(Math.random()*ICON_SET.length)];
-    bg.appendChild(wrap);
-  }
-}
-renderFloaties();
-window.addEventListener('resize', function(){
-  el('floaty-bg').innerHTML = '';
-  renderFloaties();
-});
-
-resetGame();
-</script>
 </body>
+
 </html>
