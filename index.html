@@ -1,143 +1,892 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <title>Newton's Light Bulbs | @coding.stella </title>
-  <link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
-  <link rel="stylesheet" href="./style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Pixel Reveal — PARSEC Whitefield</title>
+<style>
+  :root{
+    --ink:#0f1720; --paper:#eef1e8; --panel:#ffffff;
+    --line:#d8dccf; --line-strong:#b9bfae;
+    --moss:#3b6d11; --moss-deep:#173404; --moss-fill:#eaf3de;
+    --clay:#993c1d; --clay-fill:#faece7;
+    --plum:#534ab7; --plum-fill:#eeedfe;
+    --gold:#854f0b; --gold-fill:#faeeda;
+    --muted:#5b6156;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; width:100%; min-height:100%;
+    background:var(--paper); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    overflow-x:hidden; user-select:none;
+  }
+  #app{ width:100%; min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; }
 
+  #dash{ display:flex; background:var(--panel); border-bottom:2px solid var(--line-strong); flex-shrink:0; flex-wrap:wrap; }
+  .dash-cell{ flex:1; min-width:110px; padding:12px 16px; border-right:1px solid var(--line); display:flex; flex-direction:column; justify-content:center; gap:2px; }
+  .dash-cell:last-child{ border-right:none; }
+  .dash-label{ font-size:12px; color:var(--muted); }
+  .dash-value{ font-size:20px; font-weight:600; }
+  .dash-value.bump{ animation:scoreBump .5s ease; }
+  @keyframes scoreBump{ 0%{transform:scale(1);} 45%{transform:scale(1.25); color:var(--moss-deep);} 100%{transform:scale(1);} }
+
+  #main-layout{ flex:1; display:flex; min-height:0; }
+  #stage{ flex:2.2; display:flex; flex-direction:column; align-items:center; padding:20px 16px 40px; gap:16px; overflow-y:auto; min-width:0; }
+
+  #facts-panel{
+    flex:1; max-width:280px; min-width:220px; background:var(--panel); border-left:2px solid var(--line-strong);
+    padding:18px 16px; display:flex; flex-direction:column; gap:14px; align-items:center;
+  }
+  .facts-header{ font-size:15px; font-weight:700; color:var(--plum); text-align:center; }
+  #facts-card{
+    width:100%; background:var(--plum-fill); border:1.5px solid var(--plum); border-radius:14px;
+    padding:16px; min-height:150px; display:flex; align-items:center; justify-content:center;
+  }
+  #facts-text{ font-size:14px; line-height:1.5; color:#3a3480; text-align:center; animation:factFade .5s ease; }
+  @keyframes factFade{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+  #facts-dots{ display:flex; gap:6px; }
+  .fact-dot{ width:7px; height:7px; border-radius:50%; background:var(--line-strong); }
+  .fact-dot.active{ background:var(--plum); }
+
+  @media (max-width:820px){
+    #main-layout{ flex-direction:column; }
+    #facts-panel{ max-width:100%; border-left:none; border-top:2px solid var(--line-strong); flex-direction:row; overflow-x:auto; padding:12px 16px; }
+    .facts-header{ display:none; }
+    #facts-card{ min-height:auto; padding:12px 14px; }
+  }
+  .screen{ width:100%; max-width:560px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  @keyframes fadeSlideIn{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+  .screen.enter{ animation:fadeSlideIn .35s ease both; }
+
+  h1{ font-size:26px; font-weight:600; margin:4px 0 0; text-align:center; }
+
+  #game-hero{
+    width:100%; display:flex; flex-direction:column; align-items:center; gap:10px;
+    background:linear-gradient(160deg, var(--plum-fill), var(--moss-fill));
+    border-radius:20px; padding:26px 18px 22px; border:1.5px solid var(--line-strong);
+  }
+  #hero-pixels{
+    display:grid; grid-template-columns:repeat(4, 22px); grid-template-rows:repeat(3, 22px); gap:4px;
+  }
+  #hero-pixels span{
+    display:block; border-radius:4px; animation:pixelPop 2.4s ease-in-out infinite;
+  }
+  #hero-pixels span:nth-child(1){ background:#993c1d; animation-delay:0s; }
+  #hero-pixels span:nth-child(2){ background:#854f0b; animation-delay:.1s; }
+  #hero-pixels span:nth-child(3){ background:#3b6d11; animation-delay:.2s; }
+  #hero-pixels span:nth-child(4){ background:#534ab7; animation-delay:.3s; }
+  #hero-pixels span:nth-child(5){ background:#534ab7; animation-delay:.4s; }
+  #hero-pixels span:nth-child(6){ background:#3b6d11; animation-delay:.5s; }
+  #hero-pixels span:nth-child(7){ background:#854f0b; animation-delay:.6s; }
+  #hero-pixels span:nth-child(8){ background:#993c1d; animation-delay:.7s; }
+  #hero-pixels span:nth-child(9){ background:#993c1d; animation-delay:.8s; }
+  #hero-pixels span:nth-child(10){ background:#854f0b; animation-delay:.9s; }
+  #hero-pixels span:nth-child(11){ background:#3b6d11; animation-delay:1s; }
+  #hero-pixels span:nth-child(12){ background:#534ab7; animation-delay:1.1s; }
+  @keyframes pixelPop{ 0%,100%{ opacity:.5; transform:scale(.85); } 50%{ opacity:1; transform:scale(1); } }
+
+  #game-title{
+    font-size:32px; font-weight:800; letter-spacing:.03em; margin:2px 0 0; text-align:center;
+    background:linear-gradient(90deg, var(--plum), var(--moss));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .lead{ font-size:15px; color:var(--muted); text-align:center; max-width:480px; margin:0; }
+  .badge{ font-size:13px; font-weight:600; color:var(--plum); background:var(--plum-fill); padding:5px 14px; border-radius:20px; }
+
+  .big-btn{
+    font-size:18px; font-weight:600; padding:14px 34px; border-radius:14px; border:none;
+    background:var(--moss); color:#fff; cursor:pointer; box-shadow:0 3px 0 var(--moss-deep); touch-action:manipulation;
+  }
+  .big-btn:active{ transform:translateY(3px); box-shadow:none; }
+  .big-btn:disabled{ background:var(--line-strong); box-shadow:none; cursor:default; }
+  .ghost-btn{
+    font-size:14.5px; font-weight:600; padding:9px 20px; border-radius:12px;
+    border:1.5px solid var(--line-strong); background:var(--panel); color:var(--ink); cursor:pointer; touch-action:manipulation;
+  }
+  .small-btn{
+    font-size:14px; font-weight:600; padding:8px 16px; border-radius:10px; border:1.5px solid var(--line-strong);
+    background:var(--panel); cursor:pointer; touch-action:manipulation;
+  }
+
+  /* Setup screen */
+  .setup-card{
+    width:100%; background:var(--panel); border:1.5px solid var(--line-strong); border-radius:16px;
+    padding:16px; display:flex; flex-direction:column; gap:10px;
+  }
+  .file-drop{
+    border:2px dashed var(--line-strong); border-radius:14px; padding:22px; text-align:center;
+    color:var(--muted); font-size:14.5px; cursor:pointer; background:var(--paper);
+  }
+  .file-drop.has-file{ border-color:var(--moss); color:var(--moss-deep); background:var(--moss-fill); }
+  input[type=file]{ display:none; }
+  input[type=text]{
+    width:100%; padding:12px 14px; font-size:15px; border-radius:10px; border:1.5px solid var(--line-strong);
+    background:var(--panel); color:var(--ink);
+  }
+  .field-label{ font-size:13px; font-weight:600; color:var(--muted); }
+
+  #round-list{ width:100%; display:flex; flex-direction:column; gap:8px; }
+
+  #image-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; }
+  .image-card{
+    display:flex; flex-direction:column; gap:6px; background:var(--paper); border:1.5px solid var(--line);
+    border-radius:12px; padding:8px;
+  }
+  .image-card img{ width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:8px; display:block; }
+  .image-card input[type=text]{ padding:8px 10px; font-size:13.5px; }
+  .image-card .ic-name-label{ font-size:11px; color:var(--muted); font-weight:600; }
+  @media (max-width:420px){
+    #image-grid{ grid-template-columns:1fr 1fr; }
+  }
+  #difficulty-row{ display:flex; gap:8px; width:100%; }
+  .diff-btn{
+    flex:1; padding:12px 8px; border-radius:12px; border:1.5px solid var(--line-strong);
+    background:var(--paper); font-size:14.5px; font-weight:600; cursor:pointer; touch-action:manipulation;
+    color:var(--ink);
+  }
+  .diff-btn.selected{ background:var(--plum); border-color:var(--plum); color:#fff; }
+  .round-chip{
+    display:flex; align-items:center; gap:10px; background:var(--paper); border:1.5px solid var(--line);
+    border-radius:12px; padding:8px 10px;
+  }
+  .round-chip img{ width:44px; height:44px; object-fit:cover; border-radius:8px; }
+  .round-chip .rc-name{ flex:1; font-size:14px; font-weight:500; }
+  .round-chip .rc-remove{ background:none; border:none; color:var(--clay); font-size:18px; cursor:pointer; touch-action:manipulation; }
+
+  #player-chip-list{ display:flex; flex-wrap:wrap; gap:8px; }
+  .player-chip{
+    display:flex; align-items:center; gap:6px; background:var(--plum-fill); border:1.5px solid var(--plum);
+    border-radius:20px; padding:6px 8px 6px 14px; font-size:14px; font-weight:600; color:var(--plum);
+  }
+  .player-chip .pc-remove{ background:none; border:none; color:var(--plum); font-size:16px; cursor:pointer; touch-action:manipulation; line-height:1; }
+
+  #leaderboard-panel{
+    width:100%; background:var(--panel); border:1.5px solid var(--line-strong); border-radius:16px;
+    padding:14px; display:flex; flex-direction:column; gap:8px;
+  }
+  #leaderboard-panel .lb-title{ font-size:14px; font-weight:600; color:var(--muted); }
+  .lb-row{
+    display:flex; align-items:center; gap:10px; padding:6px 4px; border-bottom:1px solid var(--line);
+  }
+  .lb-row:last-child{ border-bottom:none; }
+  .lb-rank{ font-size:13px; font-weight:700; color:var(--muted); width:20px; }
+  .lb-name{ flex:1; font-size:15px; font-weight:600; }
+  .lb-score{ font-size:16px; font-weight:700; color:var(--moss-deep); }
+  .lb-row.leader .lb-name{ color:var(--gold); }
+  .lb-row.leader .lb-rank{ color:var(--gold); }
+  .lb-row.just-scored{ animation:lbFlash .8s ease; }
+  @keyframes lbFlash{ 0%{ background:var(--moss-fill); } 100%{ background:transparent; } }
+
+  #who-guessed-wrap{ width:100%; display:flex; flex-direction:column; gap:8px; align-items:center; }
+  #who-guessed-chips{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+  .who-btn{
+    padding:10px 18px; border-radius:20px; border:1.5px solid var(--moss); background:var(--moss-fill);
+    color:var(--moss-deep); font-size:15px; font-weight:600; cursor:pointer; touch-action:manipulation;
+  }
+  .who-btn:active{ transform:scale(.96); }
+
+  /* Game screen */
+  .round-card{
+    width:100%; background:var(--panel); border:1.5px solid var(--line-strong); border-radius:18px;
+    padding:18px; display:flex; flex-direction:column; align-items:center; gap:14px;
+  }
+  #canvas-wrap{
+    width:100%; max-width:320px; aspect-ratio:1/1; border-radius:14px; overflow:hidden;
+    border:2px solid var(--line-strong); background:#000; position:relative;
+  }
+  #reveal-canvas{ width:100%; height:100%; display:block; image-rendering:pixelated; }
+  #level-tag{
+    position:absolute; top:8px; left:8px; background:rgba(15,23,32,.65); color:#fff;
+    font-size:12px; font-weight:600; padding:4px 10px; border-radius:12px;
+  }
+
+  #level-track{ display:flex; gap:6px; width:100%; max-width:320px; }
+  .level-pip{ flex:1; height:8px; border-radius:4px; background:var(--line); }
+  .level-pip.done{ background:var(--plum); }
+  .level-pip.current{ background:var(--gold); }
+  .level-pip.locked{ background:repeating-linear-gradient(45deg, var(--line), var(--line) 3px, var(--line-strong) 3px, var(--line-strong) 6px); }
+
+  #guess-row{ display:flex; gap:8px; width:100%; max-width:400px; }
+  #guess-input{ flex:1; }
+  #reveal-more-btn{ width:100%; max-width:320px; }
+
+  #round-feedback{ min-height:44px; text-align:center; font-size:15px; font-weight:600; }
+  .fb-good{ color:var(--moss-deep); }
+  .fb-bad{ color:var(--clay); }
+  .fb-note{ display:block; font-weight:400; font-size:13.5px; color:var(--muted); margin-top:3px; }
+
+  .hint-btn{
+    font-size:13.5px; font-weight:600; color:var(--gold); background:var(--gold-fill);
+    border:1.5px dashed var(--gold); border-radius:20px; padding:7px 16px; cursor:pointer; touch-action:manipulation;
+  }
+  #round-hint-box{
+    max-height:0; overflow:hidden; opacity:0; width:100%;
+    transition:max-height .35s ease, opacity .3s ease, padding .35s ease, margin .35s ease;
+    background:var(--gold-fill); border:1.5px solid var(--gold); border-radius:12px;
+    padding:0 14px; text-align:center; font-size:13.5px; color:#5c3a08;
+  }
+  #round-hint-box.open{ max-height:120px; opacity:1; padding:10px 14px; margin-top:-2px; }
+
+  #reveal-full-wrap{ display:flex; gap:8px; }
+
+  #end-summary{ display:flex; gap:12px; width:100%; }
+  .sum-card{ flex:1; background:var(--panel); border:1px solid var(--line-strong); border-radius:14px; padding:14px; text-align:center; }
+  .sum-card .n{ font-size:24px; font-weight:600; }
+  .sum-card .l{ font-size:12px; color:var(--muted); margin-top:2px; }
+
+  @media (max-width:480px){
+    h1{ font-size:22px; }
+    .round-card{ padding:14px; }
+  }
+</style>
 </head>
-
 <body>
-  <input type="checkbox" />
-  <input type="checkbox" />
-  <input type="checkbox" />
-  <input type="checkbox" />
-  <div class="wrapper">
-    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 98.138617 90.336713">
-      <g class="light-bulb light-bulb--3">
-        <path class="light-bulb__chord" d="M45.1005633.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
-        <g class="light-bulb__bulb" transform="translate(2.5955317 -211.35093658)">
-          <circle class="light-bulb__glass" r="3.8407259" cy="286.7189" cx="42.372742" stroke-width=".25604835"
-            stroke-linecap="round" stroke-linejoin="round"></circle>
-          <rect class="light-bulb__fitting" ry=".37417734" y="279.35907" x="39.8592" height="3.96875" width="5.2916665">
-          </rect>
-          <g class="light-bulb__filament">
-            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583"
-              stroke-width=".21696301"></path>
-            <path class="light-bulb__filament"
-              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292"
-              stroke-width=".25654384"></path>
-          </g>
-          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
-          <circle class="light-bulb__bloom" r="3.5018382" cx="42.372742" cy="286.7189" stroke-width=".93382347"
-            stroke-linecap="round" stroke-linejoin="round"></circle>
-        </g>
-      </g>
-      <g class="light-bulb light-bulb--6">
-        <path class="light-bulb__chord" d="M68.9130633.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
-        <g class="light-bulb__bulb" transform="translate(26.4080317 -211.35093658)">
-          <circle class="light-bulb__glass" cx="42.372742" cy="286.7189" r="3.8407259" stroke-width=".25604835"
-            stroke-linecap="round" stroke-linejoin="round"></circle>
-          <rect class="light-bulb__fitting" width="5.2916665" height="3.96875" x="39.8592" y="279.35907" ry=".37417734">
-          </rect>
-          <g class="light-bulb__filament">
-            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583"
-              stroke-width=".21696301"></path>
-            <path class="light-bulb__filament"
-              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292"
-              stroke-width=".25654384"></path>
-          </g>
-          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
-          <circle class="light-bulb__bloom" cy="286.7189" cx="42.372742" r="3.5018382" stroke-linecap="round"
-            stroke-linejoin="round"></circle>
-        </g>
-      </g>
-      <g class="light-bulb light-bulb--5">
-        <path class="light-bulb__chord" d="M60.9755633.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
-        <g class="light-bulb__bulb" transform="translate(18.4705317 -211.35093658)">
-          <circle class="light-bulb__glass" r="3.8407259" cy="286.7189" cx="42.372742" stroke-width=".25604835"
-            stroke-linecap="round" stroke-linejoin="round"></circle>
-          <rect class="light-bulb__fitting" ry=".37417734" y="279.35907" x="39.8592" height="3.96875" width="5.2916665">
-          </rect>
-          <g class="light-bulb__filament">
-            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583"
-              stroke-width=".21696301"></path>
-            <path class="light-bulb__filament"
-              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292"
-              stroke-width=".25654384"></path>
-          </g>
-          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
-          <circle class="light-bulb__bloom" r="3.5018382" cx="42.372742" cy="286.7189" stroke-linecap="round"
-            stroke-linejoin="round"></circle>
-        </g>
-      </g>
-      <g class="light-bulb light-bulb--2">
-        <path class="light-bulb__chord" d="M37.1630633.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
-        <g class="light-bulb__bulb" transform="translate(-5.3419683 -211.35093658)">
-          <circle class="light-bulb__glass" cx="42.372742" cy="286.7189" r="3.8407259" stroke-width=".25604835"
-            stroke-linecap="round" stroke-linejoin="round"></circle>
-          <rect class="light-bulb__fitting" width="5.2916665" height="3.96875" x="39.8592" y="279.35907" ry=".37417734">
-          </rect>
-          <g class="light-bulb__filament">
-            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583"
-              stroke-width=".21696301"></path>
-            <path class="light-bulb__filament"
-              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292"
-              stroke-width=".25654384"></path>
-          </g>
-          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
-          <circle class="light-bulb__bloom" cy="286.7189" cx="42.372742" r="3.5018382" stroke-linecap="round"
-            stroke-linejoin="round"></circle>
-        </g>
-      </g>
-      <g class="light-bulb light-bulb--1">
-        <path class="light-bulb__chord" d="M29.2255633.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
-        <g class="light-bulb__bulb" transform="translate(-13.2794683 -211.35093658)">
-          <circle class="light-bulb__glass" r="3.8407259" cy="286.7189" cx="42.372742" stroke-width=".25604835"
-            stroke-linecap="round" stroke-linejoin="round"></circle>
-          <rect class="light-bulb__fitting" ry=".37417734" y="279.35907" x="39.8592" height="3.96875" width="5.2916665">
-          </rect>
-          <g class="light-bulb__filament">
-            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583"
-              stroke-width=".21696301"></path>
-            <path class="light-bulb__filament"
-              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292"
-              stroke-width=".25654384"></path>
-          </g>
-          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
-          <circle class="light-bulb__bloom" r="3.5018382" cx="42.372742" cy="286.7189" stroke-linecap="round"
-            stroke-linejoin="round"></circle>
-        </g>
-      </g>
-      <g class="light-bulb light-bulb--4">
-        <path class="light-bulb__chord" d="M53.0380634.00870392v68.74491" fill="none" stroke-width=".5291667"></path>
-        <g class="light-bulb__bulb" transform="translate(10.5330318 -211.35093658)">
-          <circle class="light-bulb__glass" cx="42.372742" cy="286.7189" r="3.8407259" stroke-width=".25604835"
-            stroke-linecap="round" stroke-linejoin="round"></circle>
-          <rect class="light-bulb__fitting" width="5.2916665" height="3.96875" x="39.8592" y="279.35907" ry=".37417734">
-          </rect>
-          <g class="light-bulb__filament">
-            <path class="light-bulb__filament" d="M43.563367 283.32784v2.64583M41.446699 283.32784v2.64583" fill="none"
-              stroke-width=".21696301"></path>
-            <path class="light-bulb__filament"
-              d="M42.505033 285.17992v1.32292M41.975866 285.17992v1.32292M43.0342 285.17992v1.32292" fill="none"
-              stroke-width=".25654384"></path>
-          </g>
-          <path class="light-bulb__fitting-shine" d="M43.298786 279.35907h1.5875v3.96875h-1.5875z"></path>
-          <circle class="light-bulb__bloom" cy="286.7189" cx="42.372742" r="3.5018382" stroke-linecap="round"
-            stroke-linejoin="round"></circle>
-        </g>
-      </g>
-    </svg>
+<div id="app">
+
+  <div id="dash">
+    <div class="dash-cell">
+      <div class="dash-label">Score</div>
+      <div class="dash-value" id="dash-score">0</div>
+    </div>
+    <div class="dash-cell">
+      <div class="dash-label">Round</div>
+      <div class="dash-value" id="dash-round">0 / 0</div>
+    </div>
+    <div class="dash-cell">
+      <div class="dash-label">Reveal level</div>
+      <div class="dash-value" id="dash-level">1 / 7</div>
+    </div>
+    <div class="dash-cell">
+      <div class="dash-label">Difficulty</div>
+      <div class="dash-value" id="dash-difficulty">Medium</div>
+    </div>
   </div>
-  <div class="banner-container"></div>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.1.1/gsap.min.js'></script>
-  <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/16327/MorphSVGPlugin3.min.js'></script>
-  <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/16327/GSDevTools3.min.js'></script>
-  <script src="./script.js"></script>
 
+  <div id="main-layout">
+    <div id="stage">
+    <button class="ghost-btn" onclick="resetGame()" style="align-self:center;">Restart</button>
+
+    <!-- SETUP -->
+    <div class="screen" id="setup-screen">
+      <div id="game-hero">
+        <div id="hero-pixels">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="badge">🎮 Digital gallery · picture reveal</div>
+        <h1 id="game-title">PIXEL REVEAL</h1>
+        <p class="lead">Choose up to 5 pictures. Each one starts as a tiny blur of pixels — guess what it is before it sharpens all the way up. The earlier you guess, the more points you score!</p>
+      </div>
+
+      <div class="setup-card">
+        <div class="field-label">Choose your pictures (up to 5)</div>
+        <label class="file-drop" id="file-drop-label" for="file-input">Tap to choose up to 5 images from this device</label>
+        <input type="file" id="file-input" accept="image/*" multiple onchange="onFilesChosen(event)">
+        <div id="image-grid"></div>
+      </div>
+
+      <div class="setup-card">
+        <div class="field-label">Players (optional — add names to track who guesses correctly)</div>
+        <div id="player-input-row" style="display:flex; gap:8px;">
+          <input type="text" id="player-name-input" placeholder="Player name" style="flex:1;" onkeydown="if(event.key==='Enter')addPlayer()">
+          <button class="ghost-btn" onclick="addPlayer()">Add</button>
+        </div>
+        <div id="player-chip-list"></div>
+        <p class="lead" style="font-size:12.5px; margin:0;">Leave this empty to just play solo with one shared score.</p>
+      </div>
+
+      <div class="setup-card">
+        <div class="field-label">Difficulty</div>
+        <div id="difficulty-row"></div>
+        <p class="lead" id="difficulty-desc" style="font-size:13px; margin:0;"></p>
+      </div>
+
+      <button class="big-btn" id="setup-start-btn" onclick="startGame()" disabled>Start game</button>
+      <p class="lead" id="setup-hint" style="font-size:13px;">Choose at least one picture to start.</p>
+    </div>
+
+    <!-- GAME -->
+    <div class="screen" id="game-screen" style="display:none;">
+      <div class="round-card">
+        <div id="round-title">Round 1 of 1</div>
+
+        <div id="canvas-wrap">
+          <canvas id="reveal-canvas" width="320" height="320"></canvas>
+          <div id="level-tag">8 × 8</div>
+        </div>
+
+        <div id="level-track"></div>
+
+        <div id="guess-row">
+          <input type="text" id="guess-input" placeholder="Type your guess..." onkeydown="if(event.key==='Enter')submitGuess()">
+          <button class="big-btn" onclick="submitGuess()">Guess</button>
+        </div>
+
+        <button class="hint-btn" id="round-hint-btn" onclick="toggleRoundHint()">💡 Show hint</button>
+        <div id="round-hint-box"></div>
+
+        <div id="auto-timer-tag" style="display:none; font-size:13px; color:var(--clay); font-weight:600;"></div>
+        <button class="big-btn" id="reveal-more-btn" onclick="revealMore()">🔍 Reveal more</button>
+
+        <div id="reveal-full-wrap">
+          <button class="small-btn" onclick="revealFull(false)">Give up — show full picture</button>
+        </div>
+
+        <div id="round-feedback"></div>
+
+        <div id="who-guessed-wrap" style="display:none;">
+          <div class="field-label">Who called it?</div>
+          <div id="who-guessed-chips"></div>
+        </div>
+      </div>
+
+      <div id="leaderboard-panel" style="display:none;">
+        <div class="lb-title">Leaderboard</div>
+        <div id="leaderboard-rows"></div>
+      </div>
+    </div>
+
+    <!-- END -->
+    <div class="screen" id="end-screen" style="display:none;">
+      <h1>Game complete</h1>
+      <div id="end-summary">
+        <div class="sum-card"><div class="n" id="end-score">0</div><div class="l">Points</div></div>
+        <div class="sum-card"><div class="n" id="end-rounds">0</div><div class="l">Pictures played</div></div>
+      </div>
+      <div id="end-leaderboard" style="display:none; width:100%;"></div>
+      <p class="lead" id="end-note"></p>
+      <button class="big-btn" onclick="resetGame()">Play again</button>
+    </div>
+
+    </div>
+
+    <div id="facts-panel">
+      <div class="facts-header">🔬 Did you know?</div>
+      <div id="facts-card">
+        <div id="facts-text"></div>
+      </div>
+      <div id="facts-dots"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* Pixel ladder: block-size fraction of image width used for the mosaic step.
+   Smaller divisor = fewer blocks = blockier. Labels shown are illustrative "resolution" tags. */
+var LEVELS = [
+  { blocks: 8,   label: "8 × 8" },
+  { blocks: 16,  label: "16 × 16" },
+  { blocks: 32,  label: "32 × 32" },
+  { blocks: 64,  label: "64 × 64" },
+  { blocks: 128, label: "128 × 128" },
+  { blocks: 256, label: "256 × 256 (HD)" },
+  { blocks: 512, label: "512 × 512 (full)" }
+];
+var POINTS_BY_LEVEL = [100, 85, 70, 55, 40, 25, 10];
+var HINT_PENALTY = 20;
+
+var DIFFICULTIES = {
+  easy:   { label: "Easy",   maxLevelIdx: 6, autoTimer: 0,  pointsMult: 0.7,
+            desc: "Reveal all the way to the full picture. No time pressure." },
+  medium: { label: "Medium", maxLevelIdx: 6, autoTimer: 0,  pointsMult: 1,
+            desc: "Reveal all the way to the full picture, at your own pace." },
+  hard:   { label: "Hard",   maxLevelIdx: 3, autoTimer: 7,  pointsMult: 1.5,
+            desc: "You can only reveal up to 64 × 64 — no clearer. Every 7 seconds it sharpens on its own, ready or not." }
+};
+var selectedDifficulty = 'medium';
+
+function renderDifficultyRow(){
+  var wrap = el('difficulty-row');
+  wrap.innerHTML = '';
+  ['easy','medium','hard'].forEach(function(key){
+    var btn = document.createElement('button');
+    btn.className = 'diff-btn' + (key === selectedDifficulty ? ' selected' : '');
+    btn.textContent = DIFFICULTIES[key].label;
+    btn.onclick = function(){ selectedDifficulty = key; renderDifficultyRow(); };
+    wrap.appendChild(btn);
+  });
+  el('difficulty-desc').textContent = DIFFICULTIES[selectedDifficulty].desc;
+}
+
+var rounds = []; // { dataUrl, answer, img }
+var state = {};
+function freshState(){
+  return { roundIdx: 0, score: 0, roundsPlayed: 0, levelIdx: 0, solved: false, autoTimerHandle: null, autoTimerLeft: 0, hintUsed: false };
+}
+state = freshState();
+
+function el(id){ return document.getElementById(id); }
+
+/* ---------- Setup screen ---------- */
+var MAX_IMAGES = 5;
+
+function onFilesChosen(evt){
+  var files = Array.from(evt.target.files || []).slice(0, MAX_IMAGES);
+  if (files.length === 0) return;
+
+  rounds = [];
+  el('image-grid').innerHTML = '';
+  el('file-drop-label').textContent = files.length + ' image' + (files.length>1?'s':'') + ' chosen';
+  el('file-drop-label').classList.add('has-file');
+
+  var loaded = 0;
+  files.forEach(function(file, i){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      rounds[i] = { dataUrl: e.target.result, answer: '', hint: '' };
+      loaded += 1;
+      if (loaded === files.length){
+        renderImageGrid();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderImageGrid(){
+  var wrap = el('image-grid');
+  wrap.innerHTML = '';
+  rounds.forEach(function(r, i){
+    var card = document.createElement('div');
+    card.className = 'image-card';
+    card.innerHTML =
+      '<img src="' + r.dataUrl + '">' +
+      '<div class="ic-name-label">Picture ' + (i+1) + ' name</div>' +
+      '<input type="text" placeholder="e.g. Hoberman ring" value="' + r.answer.replace(/"/g,'&quot;') + '" oninput="setRoundAnswer(' + i + ', this.value)">' +
+      '<input type="text" placeholder="Hint (optional)" value="' + r.hint.replace(/"/g,'&quot;') + '" oninput="setRoundHint(' + i + ', this.value)">';
+    wrap.appendChild(card);
+  });
+  el('setup-start-btn').disabled = rounds.length === 0;
+  el('setup-hint').style.display = rounds.length === 0 ? 'block' : 'none';
+}
+
+function setRoundAnswer(i, val){ if (rounds[i]) rounds[i].answer = val.trim(); }
+function setRoundHint(i, val){ if (rounds[i]) rounds[i].hint = val.trim(); }
+
+/* ---------- Players ---------- */
+var players = []; // { name, score }
+
+function addPlayer(){
+  var input = el('player-name-input');
+  var name = input.value.trim();
+  if (!name) return;
+  if (players.some(function(p){ return p.name.toLowerCase() === name.toLowerCase(); })){
+    input.value = '';
+    return;
+  }
+  players.push({ name: name, score: 0 });
+  input.value = '';
+  renderPlayerChips();
+}
+
+function removePlayer(i){
+  players.splice(i, 1);
+  renderPlayerChips();
+}
+
+function renderPlayerChips(){
+  var wrap = el('player-chip-list');
+  wrap.innerHTML = '';
+  players.forEach(function(p, i){
+    var chip = document.createElement('div');
+    chip.className = 'player-chip';
+    chip.innerHTML = '<span>' + p.name + '</span><button class="pc-remove" onclick="removePlayer(' + i + ')">✕</button>';
+    wrap.appendChild(chip);
+  });
+}
+
+/* ---------- Game screen ---------- */
+function currentRoundData(){ return rounds[state.roundIdx]; }
+
+function startGame(){
+  if (rounds.length === 0) return;
+  state = freshState();
+  el('setup-screen').style.display = 'none';
+  el('end-screen').style.display = 'none';
+  var gs = el('game-screen');
+  gs.style.display = 'flex';
+  gs.classList.remove('enter'); void gs.offsetWidth; gs.classList.add('enter');
+  loadRound();
+}
+
+function loadRound(){
+  state.levelIdx = 0;
+  state.solved = false;
+  state.hintUsed = false;
+  clearAutoTimer();
+  el('round-title').textContent = 'Round ' + (state.roundIdx+1) + ' of ' + rounds.length;
+  el('guess-input').value = '';
+  el('guess-input').disabled = false;
+  el('round-feedback').innerHTML = '';
+  el('reveal-more-btn').disabled = false;
+  el('dash-difficulty').textContent = DIFFICULTIES[selectedDifficulty].label;
+
+  var hintBox = el('round-hint-box');
+  hintBox.classList.remove('open');
+  hintBox.textContent = '';
+  var hintBtn = el('round-hint-btn');
+  var hasHint = !!(currentRoundData().hint);
+  hintBtn.style.display = hasHint ? 'inline-block' : 'none';
+  hintBtn.textContent = '💡 Show hint (−' + HINT_PENALTY + ' pts)';
+  hintBtn.disabled = false;
+
+  el('who-guessed-wrap').style.display = 'none';
+  renderLeaderboard();
+
+  renderLevelTrack();
+  updateDashboard();
+
+  var img = new Image();
+  img.onload = function(){
+    currentRoundData()._img = img;
+    drawLevel();
+    maybeStartAutoTimer();
+  };
+  img.src = currentRoundData().dataUrl;
+}
+
+function toggleRoundHint(){
+  var box = el('round-hint-box');
+  var btn = el('round-hint-btn');
+  if (box.classList.contains('open')) return;
+  box.textContent = currentRoundData().hint;
+  box.classList.add('open');
+  btn.textContent = '💡 Hint used (−' + HINT_PENALTY + ' pts)';
+  btn.disabled = true;
+  state.hintUsed = true;
+}
+
+function clearAutoTimer(){
+  if (state.autoTimerHandle){
+    clearInterval(state.autoTimerHandle);
+    state.autoTimerHandle = null;
+  }
+  el('auto-timer-tag').style.display = 'none';
+}
+
+function maybeStartAutoTimer(){
+  clearAutoTimer();
+  var diff = DIFFICULTIES[selectedDifficulty];
+  if (!diff.autoTimer) return;
+  state.autoTimerLeft = diff.autoTimer;
+  el('auto-timer-tag').style.display = 'block';
+  el('auto-timer-tag').textContent = 'Sharpening in ' + state.autoTimerLeft + 's...';
+  state.autoTimerHandle = setInterval(function(){
+    state.autoTimerLeft -= 1;
+    if (state.autoTimerLeft <= 0){
+      if (!state.solved && state.levelIdx < diff.maxLevelIdx){
+        state.levelIdx += 1;
+        drawLevel();
+        state.autoTimerLeft = diff.autoTimer;
+      } else {
+        clearAutoTimer();
+        return;
+      }
+    }
+    if (!state.solved) el('auto-timer-tag').textContent = 'Sharpening in ' + state.autoTimerLeft + 's...';
+  }, 1000);
+}
+
+function renderLevelTrack(){
+  var wrap = el('level-track');
+  wrap.innerHTML = '';
+  var maxIdx = DIFFICULTIES[selectedDifficulty].maxLevelIdx;
+  LEVELS.forEach(function(_, i){
+    var pip = document.createElement('div');
+    var cls = 'level-pip';
+    if (i < state.levelIdx) cls += ' done';
+    else if (i === state.levelIdx) cls += ' current';
+    if (i > maxIdx) cls += ' locked';
+    pip.className = cls;
+    wrap.appendChild(pip);
+  });
+}
+
+function drawLevel(){
+  var img = currentRoundData()._img;
+  if (!img) return;
+  var level = LEVELS[state.levelIdx];
+  var canvas = el('reveal-canvas');
+  var ctx = canvas.getContext('2d');
+  var size = canvas.width;
+
+  var off = document.createElement('canvas');
+  off.width = level.blocks;
+  off.height = level.blocks;
+  var offCtx = off.getContext('2d');
+  offCtx.drawImage(img, 0, 0, level.blocks, level.blocks);
+
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0,0,size,size);
+  ctx.drawImage(off, 0, 0, level.blocks, level.blocks, 0, 0, size, size);
+
+  el('level-tag').textContent = level.label;
+  el('dash-level').textContent = (state.levelIdx+1) + ' / ' + LEVELS.length;
+  renderLevelTrack();
+  var maxIdx = DIFFICULTIES[selectedDifficulty].maxLevelIdx;
+  el('reveal-more-btn').disabled = state.levelIdx >= maxIdx;
+}
+
+function revealMore(){
+  if (state.solved) return;
+  var maxIdx = DIFFICULTIES[selectedDifficulty].maxLevelIdx;
+  if (state.levelIdx < maxIdx){
+    state.levelIdx += 1;
+    drawLevel();
+    if (DIFFICULTIES[selectedDifficulty].autoTimer){
+      state.autoTimerLeft = DIFFICULTIES[selectedDifficulty].autoTimer;
+    }
+  }
+}
+
+function updateDashboard(){
+  el('dash-score').textContent = state.score;
+  el('dash-round').textContent = Math.min(state.roundIdx+1, rounds.length) + ' / ' + rounds.length;
+  el('dash-level').textContent = (state.levelIdx+1) + ' / ' + LEVELS.length;
+}
+
+function bumpScore(){
+  var dv = el('dash-score');
+  dv.classList.remove('bump'); void dv.offsetWidth; dv.classList.add('bump');
+}
+
+function submitGuess(){
+  if (state.solved) return;
+  var guess = el('guess-input').value.trim();
+  if (!guess) return;
+  var answer = currentRoundData().answer;
+
+  if (!answer){
+    el('round-feedback').innerHTML = '<div class="fb-note">No answer was set for this picture — tap "Reveal more" until you\'re confident, then have the group agree out loud.</div>';
+    return;
+  }
+
+  var norm = function(s){ return s.toLowerCase().replace(/[^a-z0-9]/g,''); };
+  if (norm(guess) === norm(answer)){
+    var basePoints = POINTS_BY_LEVEL[state.levelIdx];
+    var points = Math.round(basePoints * DIFFICULTIES[selectedDifficulty].pointsMult);
+    if (state.hintUsed) points = Math.max(5, points - HINT_PENALTY);
+    state.pendingPoints = points;
+    state.roundsPlayed += 1;
+    state.solved = true;
+    clearAutoTimer();
+    el('guess-input').disabled = true;
+    el('reveal-more-btn').disabled = true;
+    el('round-hint-btn').disabled = true;
+    var hintNote = state.hintUsed ? ' (−' + HINT_PENALTY + ' for using the hint)' : '';
+    el('round-feedback').innerHTML = '<div class="fb-good">Correct — it was "'+answer+'"! Worth +'+points+' points'+hintNote+'<span class="fb-note">Guessed at reveal level '+(state.levelIdx+1)+' of '+LEVELS.length+' on '+DIFFICULTIES[selectedDifficulty].label+' difficulty.</span></div>';
+    revealFull(true);
+
+    if (players.length > 0){
+      showWhoGuessedPicker(points);
+    } else {
+      state.score += points;
+      updateDashboard();
+      bumpScore();
+      setTimeout(nextRound, 2200);
+    }
+  } else {
+    el('round-feedback').innerHTML = '<div class="fb-bad">Not quite — try again, or reveal more to see it clearer.</div>';
+  }
+}
+
+function showWhoGuessedPicker(points){
+  var wrap = el('who-guessed-wrap');
+  var chips = el('who-guessed-chips');
+  chips.innerHTML = '';
+  players.forEach(function(p, i){
+    var btn = document.createElement('button');
+    btn.className = 'who-btn';
+    btn.textContent = p.name;
+    btn.onclick = function(){ awardToPlayer(i, points); };
+    chips.appendChild(btn);
+  });
+  var skipBtn = document.createElement('button');
+  skipBtn.className = 'who-btn';
+  skipBtn.style.background = 'var(--paper)';
+  skipBtn.style.borderColor = 'var(--line-strong)';
+  skipBtn.style.color = 'var(--muted)';
+  skipBtn.textContent = "No one / skip";
+  skipBtn.onclick = function(){ awardToPlayer(-1, points); };
+  chips.appendChild(skipBtn);
+  wrap.style.display = 'flex';
+}
+
+function awardToPlayer(idx, points){
+  el('who-guessed-wrap').style.display = 'none';
+  if (idx >= 0){
+    players[idx].score += points;
+    renderLeaderboard(idx);
+  } else {
+    renderLeaderboard();
+  }
+  setTimeout(nextRound, 1200);
+}
+
+function renderLeaderboard(justScoredIdx){
+  var panel = el('leaderboard-panel');
+  if (players.length === 0){
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'flex';
+  var sorted = players.map(function(p, i){ return { p: p, origIdx: i }; })
+                       .sort(function(a,b){ return b.p.score - a.p.score; });
+  var wrap = el('leaderboard-rows');
+  wrap.innerHTML = '';
+  sorted.forEach(function(entry, rank){
+    var row = document.createElement('div');
+    row.className = 'lb-row' + (rank === 0 && entry.p.score > 0 ? ' leader' : '') + (entry.origIdx === justScoredIdx ? ' just-scored' : '');
+    row.innerHTML =
+      '<div class="lb-rank">' + (rank+1) + '</div>' +
+      '<div class="lb-name">' + (rank === 0 && entry.p.score > 0 ? '👑 ' : '') + entry.p.name + '</div>' +
+      '<div class="lb-score">' + entry.p.score + '</div>';
+    wrap.appendChild(row);
+  });
+}
+
+function revealFull(wasCorrect){
+  var img = currentRoundData()._img;
+  var canvas = el('reveal-canvas');
+  var ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  el('level-tag').textContent = 'Full picture';
+  el('reveal-more-btn').disabled = true;
+
+  if (!wasCorrect){
+    clearAutoTimer();
+    state.roundsPlayed += 1;
+    state.solved = true;
+    el('guess-input').disabled = true;
+    el('round-hint-btn').disabled = true;
+    var answer = currentRoundData().answer;
+    el('round-feedback').innerHTML = '<div class="fb-bad">Here it is'+(answer ? ' — "'+answer+'"' : '')+'.<span class="fb-note">On to the next one.</span></div>';
+    setTimeout(nextRound, 2200);
+  }
+}
+
+function nextRound(){
+  clearAutoTimer();
+  state.roundIdx += 1;
+  if (state.roundIdx >= rounds.length){
+    endGame();
+  } else {
+    loadRound();
+    var gs = el('game-screen');
+    gs.classList.remove('enter'); void gs.offsetWidth; gs.classList.add('enter');
+  }
+}
+
+function endGame(){
+  clearAutoTimer();
+  el('game-screen').style.display = 'none';
+  var es = el('end-screen');
+  es.style.display = 'flex';
+  es.classList.remove('enter'); void es.offsetWidth; es.classList.add('enter');
+  el('end-score').textContent = state.score;
+  el('end-rounds').textContent = state.roundsPlayed + ' / ' + rounds.length;
+
+  var lbWrap = el('end-leaderboard');
+  if (players.length > 0){
+    lbWrap.style.display = 'block';
+    var sorted = players.slice().sort(function(a,b){ return b.score - a.score; });
+    var html = '<div class="lb-title" style="text-align:center; margin-bottom:6px;">Final leaderboard</div>';
+    sorted.forEach(function(p, rank){
+      html += '<div class="lb-row' + (rank===0 && p.score>0 ? ' leader' : '') + '">' +
+        '<div class="lb-rank">' + (rank+1) + '</div>' +
+        '<div class="lb-name">' + (rank===0 && p.score>0 ? '👑 ' : '') + p.name + '</div>' +
+        '<div class="lb-score">' + p.score + '</div></div>';
+    });
+    lbWrap.innerHTML = html;
+  } else {
+    lbWrap.style.display = 'none';
+  }
+
+  var maxPossible = rounds.length * POINTS_BY_LEVEL[0] * DIFFICULTIES[selectedDifficulty].pointsMult;
+  var pct = maxPossible ? state.score / maxPossible : 0;
+  var note;
+  if (players.length > 0){
+    note = "Scores are tracked per player above — restart to play another round with the same group.";
+  } else if (pct >= 0.7){
+    note = "Sharp eyes! You spotted most pictures while they were still very pixelated.";
+  } else if (pct >= 0.35){
+    note = "Good going — you guessed several before the full reveal.";
+  } else {
+    note = "Nice try! Play again and see how early you can call it next time.";
+  }
+  el('end-note').textContent = note;
+}
+
+function resetGame(){
+  clearAutoTimer();
+  state = freshState();
+  players.forEach(function(p){ p.score = 0; });
+  el('game-screen').style.display = 'none';
+  el('end-screen').style.display = 'none';
+  var ss = el('setup-screen');
+  ss.style.display = 'flex';
+  ss.classList.remove('enter'); void ss.offsetWidth; ss.classList.add('enter');
+  updateDashboard();
+  renderDifficultyRow();
+  renderPlayerChips();
+}
+
+/* ---------- Science facts sidebar ---------- */
+var SCIENCE_FACTS = [
+  "Your eye can start recognising a familiar shape from very blurry, low-detail information — your brain fills in the rest using memory and expectation.",
+  "A pulley doesn't reduce the total work done — it just spreads the same work across a smaller force and a longer distance.",
+  "White light is actually a mix of every visible colour. A prism doesn't add colour — it just separates what's already there.",
+  "Pixels get their name from 'picture element' — the smallest single-colour square a digital image is built from.",
+  "The Hoberman-style expanding ring uses the exact same folding principle as a common collapsible umbrella.",
+  "Capacitive touchscreens sense the tiny electrical charge naturally present in your skin — that's why they don't work with most gloves on.",
+  "A single fixed pulley doesn't reduce the effort needed to lift something — it only changes the direction you pull in.",
+  "Coloured light mixes very differently from paint: red and green light combine to make yellow, not brown.",
+  "Momentum passes through a row of touching objects almost instantly — that's why a swinging-ball pendulum sends out the same number of balls it took in.",
+  "The word 'rasa' in Indian aesthetic theory roughly means the essence of an emotion meant to be felt by an audience, not just displayed.",
+  "Some magic sand stays completely dry underwater — each grain is coated with a microscopic water-repelling layer.",
+  "Higher resolution doesn't just mean 'more pixels' — it means more independent samples of colour packed into the same space.",
+  "A block-and-tackle pulley system trades distance for force: pull more rope through, and you need proportionally less muscle.",
+  "The human brain is often able to guess a familiar object from as little as 10% of its visual detail.",
+  "Refraction — light bending as it passes between materials — is the same effect that makes a straw look bent in a glass of water."
+];
+var factIdx = 0;
+var factTimer = null;
+
+function renderFactDots(){
+  var wrap = el('facts-dots');
+  wrap.innerHTML = '';
+  SCIENCE_FACTS.forEach(function(_, i){
+    var dot = document.createElement('div');
+    dot.className = 'fact-dot' + (i === factIdx ? ' active' : '');
+    wrap.appendChild(dot);
+  });
+}
+
+function showFact(){
+  el('facts-text').style.animation = 'none';
+  void el('facts-text').offsetWidth;
+  el('facts-text').style.animation = '';
+  el('facts-text').textContent = SCIENCE_FACTS[factIdx];
+  renderFactDots();
+}
+
+function startFactsRotation(){
+  showFact();
+  clearInterval(factTimer);
+  factTimer = setInterval(function(){
+    factIdx = (factIdx + 1) % SCIENCE_FACTS.length;
+    showFact();
+  }, 7000);
+}
+
+startFactsRotation();
+
+resetGame();
+</script>
 </body>
-
 </html>
